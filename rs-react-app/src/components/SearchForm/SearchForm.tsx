@@ -1,8 +1,8 @@
 import { Component, type ChangeEvent, type SyntheticEvent } from 'react';
+import { saveSearchValue, trimValue } from '../../helpers/localStorage';
 
 type SearchFormProps = {
   onSearch: (searchTerm: string) => void;
-  placeholder?: string;
   initialValue?: string;
 };
 
@@ -13,29 +13,30 @@ type SearchFormState = {
 class SearchForm extends Component<SearchFormProps, SearchFormState> {
   constructor(props) {
     super(props);
-    this.state = { value: this.props.initialValue || '' };
   }
 
   handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    this.setState({ value: e.target.value });
+    const changedSearchValue = trimValue(e.target.value);
+    saveSearchValue(changedSearchValue);
+    this.props.onSearch(changedSearchValue);
+    this.setState({ value: changedSearchValue });
   };
 
   handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
-    this.props.onSearch(this.state.value);
   };
 
   render() {
-    const { placeholder = 'Your search term' } = this.props;
-    const { value } = this.state;
+    const { initialValue } = this.props;
+
     return (
       <form onSubmit={this.handleSubmit}>
         <input
           type="text"
-          value={value}
+          value={initialValue}
           onChange={this.handleChange}
-          placeholder={placeholder}
+          placeholder="Your search term"
         />
         <button>Search</button>
       </form>
