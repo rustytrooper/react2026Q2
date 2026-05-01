@@ -1,10 +1,8 @@
 import { Component } from 'react';
 import { type Character } from '../../types/charachterType';
-
-type ResultContainerProps = {
-  character: Character[];
-};
-
+interface ResultContainerProps {
+  characters: Character[] | null;
+}
 class ResultContainer extends Component<ResultContainerProps> {
   constructor(props) {
     super(props);
@@ -13,13 +11,13 @@ class ResultContainer extends Component<ResultContainerProps> {
   render() {
     return (
       <ul>
-        {this.props.character.map((card) => {
+        {this.props.characters?.map((card) => {
           return (
-            <li>
-              <p>Character id: {card.id}</p>
+            <li key={card._id}>
+              <img src={card.imageUrl} alt={card.name} />
               <p>Character name: {card.name}</p>
-              <p>Character height: {card.height}</p>
-              <p>Character home: {card.locationAreaEncounters}</p>
+              <p>Character films: {card.films}</p>
+              <p>Character TV shows: {card.tvShows}</p>
             </li>
           );
         })}
