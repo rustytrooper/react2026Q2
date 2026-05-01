@@ -1,9 +1,9 @@
 import './App.css';
 import SearchForm from './components/SearchForm/SearchForm';
 import ResultContainer from './components/ResultCotainer/ResultContainer';
-import { fetchData } from './helpers/fetchData';
+import { fetchData, fetchFilteredData } from './helpers/fetchData';
 import { Component } from 'react';
-import { type Character } from './types/charachterType';
+import { type DisneyApiResponse } from './types/charachterType';
 import {
   initializeSearchValue,
   saveSearchValue,
@@ -13,7 +13,7 @@ import {
 type AppProps = {};
 
 type AppState = {
-  cards: Character[] | null;
+  cards: DisneyApiResponse | null;
   searchTerm: string;
 };
 class App extends Component<AppProps, AppState> {
@@ -24,16 +24,28 @@ class App extends Component<AppProps, AppState> {
       searchTerm: '',
     };
   }
-  async componentDidMount(): Promise<void> {
-    const firstSearchValue = initializeSearchValue();
-    const cards = await fetchData();
-    this.setState({ cards: cards.data, searchTerm: firstSearchValue });
+  componentDidMount() {
+    this.loadInitialData();
   }
 
-  handleSearch = (searchTerm: string) => {
+  loadInitialData = async () => {
+    const firstSearchValue = initializeSearchValue();
+    const cards = await fetchData();
+    this.setState({
+      cards: cards,
+      searchTerm: firstSearchValue,
+    });
+  };
+
+  handleSearch = async (searchTerm: string) => {
     const trimmedValue = trimValue(searchTerm);
     saveSearchValue(trimmedValue);
     this.setState({ searchTerm: trimmedValue });
+  };
+  handleSubmit = async (searchTerm: string) => {
+    const trimmedValue = trimValue(searchTerm);
+    const fetchedFilteredData = await fetchFilteredData(trimmedValue);
+    this.setState({ cards: fetchedFilteredData, searchTerm: trimmedValue });
   };
 
   render() {
@@ -41,6 +53,7 @@ class App extends Component<AppProps, AppState> {
       <>
         <SearchForm
           onSearch={this.handleSearch}
+          onSubmit={this.handleSubmit}
           initialValue={this.state.searchTerm}
         />{' '}
         <ResultContainer characters={this.state.cards} />

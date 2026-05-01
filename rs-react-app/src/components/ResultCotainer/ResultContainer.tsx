@@ -1,7 +1,7 @@
 import { Component } from 'react';
-import { type Character } from '../../types/charachterType';
+import { type DisneyApiResponse } from '../../types/charachterType';
 interface ResultContainerProps {
-  characters: Character[] | null;
+  characters: DisneyApiResponse | null;
 }
 class ResultContainer extends Component<ResultContainerProps> {
   constructor(props) {
@@ -11,7 +11,7 @@ class ResultContainer extends Component<ResultContainerProps> {
   render() {
     return (
       <ul>
-        {this.props.characters?.map((card) => {
+        {this.props.characters?.data.map((card) => {
           return (
             <li key={card._id}>
               <img src={card.imageUrl} alt={card.name} />

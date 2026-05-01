@@ -3,6 +3,7 @@ import { saveSearchValue, trimValue } from '../../helpers/localStorage';
 
 type SearchFormProps = {
   onSearch: (searchTerm: string) => void;
+  onSubmit: (searchTerm: string) => void;
   initialValue?: string;
 };
 
@@ -23,8 +24,9 @@ class SearchForm extends Component<SearchFormProps, SearchFormState> {
     this.setState({ value: changedSearchValue });
   };
 
-  handleSubmit = (event: SyntheticEvent) => {
-    event.preventDefault();
+  handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+    this.props.onSubmit(this.state.value);
   };
 
   render() {
