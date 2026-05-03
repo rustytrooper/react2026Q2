@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import { type DisneyApiResponse } from '../../types/charachterType';
+import Card from '../../ui-kit/Card';
 interface ResultContainerProps {
   characters: DisneyApiResponse | null;
 }
@@ -10,14 +11,16 @@ class ResultContainer extends Component<ResultContainerProps> {
 
   render() {
     return (
-      <ul>
+      <ul className="grid grid-cols-1 mt-5  mx-auto  sm:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-2">
         {this.props.characters?.data.map((card) => {
           return (
             <li key={card._id}>
-              <img src={card.imageUrl} alt={card.name} />
-              <p>Character name: {card.name}</p>
-              <p>Character films: {card.films}</p>
-              <p>Character TV shows: {card.tvShows}</p>
+              <Card
+                imageUrl={card.imageUrl}
+                name={card.name}
+                films={card.films}
+                tvShows={card.tvShows}
+              />
             </li>
           );
         })}

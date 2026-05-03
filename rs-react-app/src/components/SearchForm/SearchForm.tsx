@@ -33,14 +33,36 @@ class SearchForm extends Component<SearchFormProps, SearchFormState> {
     const { initialValue } = this.props;
 
     return (
-      <form onSubmit={this.handleSubmit}>
+      <form
+        onSubmit={this.handleSubmit}
+        className="flex justify-between mx-auto mt-6 gap-4"
+      >
         <input
           type="text"
           value={initialValue}
           onChange={this.handleChange}
           placeholder="Your search term"
+          className="
+          w-100
+          px-4 
+          py-3 
+          rounded-2xl 
+          bg-white/90 
+          border 
+          border-gray-300 
+          text-gray-800 
+          placeholder:text-gray-400 
+          focus:outline-none 
+          focus:ring-2 
+          focus:ring-purple-400 
+          focus:border-transparent
+          transition-all 
+          duration-200
+        "
         />
-        <button>Search</button>
+        <button className="bg-purple-400  rounded-2xl  px-4 py-3 hover:bg-purple-300 cursor-pointer hover:scale-110 transition-all duration-200">
+          Search
+        </button>
       </form>
     );
   }

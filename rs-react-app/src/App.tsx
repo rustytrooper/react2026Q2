@@ -51,11 +51,13 @@ class App extends Component<AppProps, AppState> {
   render() {
     return (
       <>
-        <SearchForm
-          onSearch={this.handleSearch}
-          onSubmit={this.handleSubmit}
-          initialValue={this.state.searchTerm}
-        />{' '}
+        <div className="flex justify-content-center">
+          <SearchForm
+            onSearch={this.handleSearch}
+            onSubmit={this.handleSubmit}
+            initialValue={this.state.searchTerm}
+          />{' '}
+        </div>
         <ResultContainer characters={this.state.cards} />
       </>
     );
