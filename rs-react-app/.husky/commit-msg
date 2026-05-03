@@ -1,0 +1,8 @@
+REGEX="^((feat|fix||refactor||chore)(\(.+\))?!?: .{1,})"
+
+FILE=`cat $1`
+if ! [[ $FILE =~ $REGEX ]]; then
+    echo "Ошибка: сообщение коммита должно соответствовать формату Conventional Commits."
+    echo "Пример: feat: добавить новую функцию"
+    exit 1
+fi
