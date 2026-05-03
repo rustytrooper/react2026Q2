@@ -5,7 +5,7 @@ interface ResultContainerProps {
   characters: DisneyApiResponse | null;
 }
 class ResultContainer extends Component<ResultContainerProps> {
-  constructor(props) {
+  constructor(props: ResultContainerProps) {
     super(props);
   }
 

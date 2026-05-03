@@ -12,7 +12,7 @@ type SearchFormState = {
 };
 
 class SearchForm extends Component<SearchFormProps, SearchFormState> {
-  constructor(props) {
+  constructor(props: SearchFormProps) {
     super(props);
   }
 
@@ -60,7 +60,7 @@ class SearchForm extends Component<SearchFormProps, SearchFormState> {
           duration-200
         "
         />
-        <button className="bg-purple-400  rounded-2xl  px-4 py-3 hover:bg-purple-300 cursor-pointer hover:scale-110 transition-all duration-200">
+        <button className="bg-purple-400  rounded-2xl  px-4 py-3 text-white hover:bg-purple-300 cursor-pointer hover:scale-110 transition-all duration-200">
           Search
         </button>
       </form>

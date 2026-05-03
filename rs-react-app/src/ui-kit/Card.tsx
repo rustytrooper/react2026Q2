@@ -9,21 +9,6 @@ type CardProps = {
 
 class Card extends Component<CardProps> {
   render() {
-    // return (
-    //   <div className="grid w-80 h-100 gap-y-1 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-1 neon-border  rounded-xl">
-    //     {/* <img src={this.props.imageUrl} alt={this.props.name}  className="w-[250px] h-[250px] mx-auto rounded-2xl object-cover transition-transform duration-300 hover:scale-110" /> */}
-    //     <div className="flex justify-center w-[250px] h-[250px] mx-auto mt-4  overflow-hidden rounded-2xl cursor-pointer">
-    //       <img
-    //         src={this.props.imageUrl}
-    //         alt={this.props.name}
-    //         className="w-[250px] h-[250px] object-cover transition-transform rounded-2xl duration-300 hover:scale-110"
-    //       />
-    //     </div>
-    //     <p className="text-500">Character name: {this.props.name}</p>
-    //     <p>Character films: {this.props.films}</p>
-    //     <p>Character TV shows: {this.props.tvShows}</p>
-    //   </div>
-    // );
     return (
       <div
         className="
