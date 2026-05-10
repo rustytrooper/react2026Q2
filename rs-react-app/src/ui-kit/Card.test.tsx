@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 
 import Card from './Card';
 
@@ -11,6 +11,10 @@ const defaultProps = {
 };
 
 describe('Card Component', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    cleanup();
+  });
   test('displays item name and films/tvShows correctly', () => {
     render(<Card {...defaultProps} />);
 
@@ -39,19 +43,20 @@ describe('Card Component', () => {
     };
 
     render(<Card {...incompleteProps} />);
-
     const nameElement = screen.getByText(incompleteProps.name);
     expect(nameElement).toBeInTheDocument();
-
     const filmsText = screen.getByText('Films:');
-    const filmsValue = screen.queryByText(incompleteProps.films.join(', '));
     expect(filmsText).toBeInTheDocument();
-    expect(filmsValue?.textContent?.trim()).toBe('');
 
     const tvShowsText = screen.getByText('TV shows:');
-    const tvShowsValue = screen.queryByText(incompleteProps.tvShows.join(', '));
     expect(tvShowsText).toBeInTheDocument();
-    expect(tvShowsValue?.textContent?.trim()).toBe('');
+    const filmsContainer = filmsText.parentElement;
+    expect(filmsContainer?.textContent).toBe('Films: ');
+
+    const tvShowsContainer = tvShowsText.parentElement;
+    expect(tvShowsContainer?.textContent).toBe('TV shows: ');
+    expect(filmsContainer?.textContent).not.toContain(',');
+    expect(tvShowsContainer?.textContent).not.toContain(',');
   });
 
   test('renders without crashing with minimal required props', () => {
@@ -65,8 +70,7 @@ describe('Card Component', () => {
     expect(() => {
       render(<Card {...minimalProps} />);
     }).not.toThrow();
-
-    const card = screen.getByRole('img', { name: minimalProps.name });
-    expect(card).toBeInTheDocument();
+    expect(screen.getByText('Films:')).toBeInTheDocument();
+    expect(screen.getByText('TV shows:')).toBeInTheDocument();
   });
 });

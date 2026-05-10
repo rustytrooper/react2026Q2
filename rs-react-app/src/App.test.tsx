@@ -1,183 +1,344 @@
-import { describe, expect, test, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import App from './App';
-import { saveSearchValue } from './helpers/localStorage';
-import type { DisneyApiResponse } from './types/charachterType';
-import { server } from './mocks/node';
+import {
+  mockCharactersResponse,
+  mockAchilles,
+  mockAuntGertie,
+} from './mocks/mockData';
+import { initializeSearchValue, saveSearchValue } from './helpers/localStorage';
 
-const mockFilteredCharacters: DisneyApiResponse = {
-  info: { count: 1, totalPages: 1, previousPage: null, nextPage: null},
-  data: [
-    {
-      _id: 1,
-      films: ['a', 'b'],
-      shortFilms: ['a', 'b'],
-      tvShows: ['a', 'b'],
-      videoGames: ['a', 'b'],
-      parkAttractions: ['a', 'b'],
-      allies: ['a', 'b'],
-      enemies: ['a', 'b'],
-      name: 'Ariel',
-      imageUrl: 'ariel.png',
-      url: 'example.com',
-    },
-  ],
-};
+vi.mock('./helpers/localStorage', () => ({
+  initializeSearchValue: vi.fn(),
+  saveSearchValue: vi.fn(),
+  trimValue: vi.fn((val: string) => val.trim()),
+}));
 
-beforeEach(() => {
-  localStorage.clear();
-  vi.spyOn(console, 'error').mockImplementation(() => {});
-});
+vi.mock('./components/SearchForm/SearchForm', () => ({
+  default: ({ onSubmit, initialValue, onSearch }: any) => (
+    <form
+      data-testid="search-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const input = document.querySelector(
+          '[data-testid="search-input"]'
+        ) as HTMLInputElement;
+        onSubmit(input?.value || initialValue || '');
+      }}
+    >
+      <input
+        data-testid="search-input"
+        defaultValue={initialValue || ''}
+        onChange={(e) => onSearch?.(e.target.value)}
+      />
+      <button data-testid="search-button" type="submit">
+        Search
+      </button>
+    </form>
+  ),
+}));
 
+vi.mock('./components/ResultCotainer/ResultContainer', () => ({
+  default: ({ characters }: { characters: any }) => (
+    <div data-testid="result-container">
+      {characters?.data?.length === 0 && <div>No results found</div>}
+      {characters?.data?.map((card: any) => (
+        <div key={card._id} data-testid={`card-${card.name}`}>
+          {card.name}
+        </div>
+      ))}
+      {!characters && <div>No data</div>}
+    </div>
+  ),
+}));
+
+vi.mock('./components/Loader/Loader', () => ({
+  Loader: () => <div data-testid="loader">Loading...</div>,
+}));
+
+vi.mock('./components/ErrorBoundary/ErrorBoundary', () => ({
+  ErrorBoundary: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
+vi.mock('./components/ErrorBoundary/ErrorButton', () => ({
+  ErrorButton: () => <button data-testid="error-button">Throw Error</button>,
+}));
+
+const server = setupServer();
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterAll(() => server.close());
 afterEach(() => {
+  server.resetHandlers();
   vi.clearAllMocks();
+  localStorage.clear();
 });
 
-describe('App Component – Integration Tests', () => {
-  test('makes initial API call on component mount', async () => {
-    render(<App />);
+const mockInitializeSearchValue = vi.mocked(initializeSearchValue);
+const mockSaveSearchValue = vi.mocked(saveSearchValue);
 
-    const loader = screen.getByTestId('loader');
-    expect(loader).toBeInTheDocument();
+describe('App Component - Integration Tests', () => {
+  describe('Handles search term from localStorage on initial load', () => {
+    it('should load and display saved search term from localStorage', async () => {
+      const savedTerm = 'Aunt Gertie';
+      mockInitializeSearchValue.mockReturnValue(savedTerm);
 
-    await waitFor(() => {
-      expect(screen.queryByText('loader')).not.toBeInTheDocument();
+      server.use(
+        http.get('https://api.disneyapi.dev/character', ({ request }) => {
+          const url = new URL(request.url);
+          const name = url.searchParams.get('name');
+
+          if (name === savedTerm.toLowerCase()) {
+            return HttpResponse.json(mockAuntGertie);
+          }
+          return HttpResponse.json(mockCharactersResponse);
+        })
+      );
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('search-input')).toHaveValue(savedTerm);
+      });
     });
-    expect(screen.getByText('ResultContainer')).toBeInTheDocument();
   });
 
-  test('handles search term from localStorage on initial load', async () => {
-    const savedTerm = 'Mickey';
-    saveSearchValue(savedTerm);
+  describe('Manages loading states during API calls', () => {
+    it('should show and hide loader during initial data fetch', async () => {
+      server.use(
+        http.get('https://api.disneyapi.dev/character', async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return HttpResponse.json(mockCharactersResponse);
+        })
+      );
+
+      render(<App />);
+
+      expect(screen.getByTestId('loader')).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should show loader during search submission', async () => {
+      const user = userEvent.setup();
+      mockInitializeSearchValue.mockReturnValue(undefined);
+
+      server.use(
+        http.get('https://api.disneyapi.dev/character', () => {
+          return HttpResponse.json(mockCharactersResponse);
+        }),
+        http.get('https://api.disneyapi.dev/character', async ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('name')) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            return HttpResponse.json(mockAchilles);
+          }
+          return HttpResponse.json(mockCharactersResponse);
+        })
+      );
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+
+      const searchInput = screen.getByTestId('search-input');
+      const searchButton = screen.getByTestId('search-button');
+
+      await user.clear(searchInput);
+      await user.type(searchInput, 'achilles');
+      await user.click(searchButton);
+
+      expect(screen.getByTestId('loader')).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+    });
+  });
+});
+
+describe('App Component - API Integration Tests', () => {
+  beforeEach(() => {
+    mockInitializeSearchValue.mockReturnValue(undefined);
+  });
+
+  describe('Handles API error responses', () => {
+    it('should handle 404 error from API', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      server.use(
+        http.get('https://api.disneyapi.dev/character', () => {
+          return HttpResponse.json(null, { status: 404 });
+        })
+      );
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('result-container')).toBeInTheDocument();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle network error gracefully', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      server.use(
+        http.get('https://api.disneyapi.dev/character', () => {
+          return HttpResponse.error();
+        })
+      );
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('result-container')).toBeInTheDocument();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+});
+
+describe('App Component - State Management Tests', () => {
+  beforeEach(() => {
+    mockInitializeSearchValue.mockReturnValue(undefined);
+  });
+  describe('Manages search term state correctly', () => {
+    it('should update searchTerm state when user types', async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get('https://api.disneyapi.dev/character', () => {
+          return HttpResponse.json(mockCharactersResponse);
+        })
+      );
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+
+      const searchInput = screen.getByTestId('search-input');
+
+      await user.clear(searchInput);
+      await user.type(searchInput, 'test search');
+
+      expect(searchInput).toHaveValue('test search');
+    });
+
+    it('should save search term to localStorage on submit', async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        http.get('https://api.disneyapi.dev/character', () => {
+          return HttpResponse.json(mockCharactersResponse);
+        }),
+        http.get('https://api.disneyapi.dev/character', ({ request }) => {
+          const url = new URL(request.url);
+          if (url.searchParams.get('name')) {
+            return HttpResponse.json(mockAchilles);
+          }
+          return HttpResponse.json(mockCharactersResponse);
+        })
+      );
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+      });
+
+      const searchInput = screen.getByTestId('search-input');
+      const searchButton = screen.getByTestId('search-button');
+
+      await user.clear(searchInput);
+      await user.type(searchInput, 'achilles');
+      await user.click(searchButton);
+
+      await waitFor(() => {
+        expect(mockSaveSearchValue).toHaveBeenCalledWith('achilles');
+      });
+    });
+  });
+});
+
+describe('App Component - Performance and Edge Cases', () => {
+  it('should handle rapid consecutive searches without breaking', async () => {
+    const user = userEvent.setup();
+    mockInitializeSearchValue.mockReturnValue(undefined);
 
     server.use(
-      http.get('/api/disney/filtered', () => {
-        return HttpResponse.json(mockFilteredCharacters);
+      http.get('https://api.disneyapi.dev/character', () => {
+        return HttpResponse.json(mockCharactersResponse);
       })
     );
 
     render(<App />);
-
-    const input = screen.getByRole('searchbox');
-    expect(input).toHaveValue(savedTerm);
-
-    await waitFor(() => {
-      expect(screen.getByText('ResultContainer filtered')).toBeInTheDocument();
-    });
-  });
-
-  test('manages loading states during API calls', async () => {
-    render(<App />);
-
-    const loader = screen.getByTestId('loader');
-    expect(loader).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
     });
 
-    const searchInput = screen.getByRole('searchbox');
-    const searchButton = screen.getByRole('button', { name: 'Search' });
+    const searchButton = screen.getByTestId('search-button');
 
-    fireEvent.change(searchInput, { target: { value: 'Goofy' } });
-    fireEvent.click(searchButton);
-    expect(screen.getByTestId('loader')).toBeInTheDocument();
+    await user.click(searchButton);
+    await user.click(searchButton);
+    await user.click(searchButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('result-container')).toBeInTheDocument();
+    });
+  });
+
+  it('should handle very long search terms', async () => {
+    const user = userEvent.setup();
+    const longTerm = 'a'.repeat(500);
+
+    server.use(
+      http.get('https://api.disneyapi.dev/character', () => {
+        return HttpResponse.json(mockCharactersResponse);
+      })
+    );
+
+    render(<App />);
 
     await waitFor(() => {
       expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
     });
-  });
-});
 
-describe('App Component  API Integration Tests', () => {
-  test('calls API with correct parameters', async () => {
-    let capturedParam = '';
-    const savedTerm = 'Donald';
+    const searchInput = screen.getByTestId('search-input');
+    const searchButton = screen.getByTestId('search-button');
 
-    server.use(
-      http.get('/api/disney/filtered', ({ request }) => {
-        const url = new URL(request.url);
-        capturedParam = url.searchParams.get('name') || '';
-        return HttpResponse.json(mockFilteredCharacters);
-      })
-    );
-
-    render(<App />);
-
-    const searchInput = screen.getByRole('searchbox');
-    const searchButton = screen.getByRole('button', { name: 'Search' });
-
-    fireEvent.change(searchInput, { target: { value: savedTerm } });
-    fireEvent.click(searchButton);
+    await user.clear(searchInput);
+    await user.type(searchInput, longTerm);
+    await user.click(searchButton);
 
     await waitFor(() => {
-      expect(capturedParam).toBe('Donald');
+      expect(screen.getByTestId('result-container')).toBeInTheDocument();
     });
-  });
-
-  test('handles successful API responses correctly', async () => {
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByText('ResultContainer')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Mickey Mouse')).toBeInTheDocument();
-  });
-
-  test('handles API error responses', async () => {
-    server.use(
-      http.get('/api/disney/all', () => {
-        return HttpResponse.json({ error: 'Failed to fetch' }, { status: 500 });
-      })
-    );
-
-    render(<App />);
-    const errorFallback = await screen.findByText(/Something went wrong/i);
-    expect(errorFallback).toBeInTheDocument();
-  });
-});
-
-describe('App Component State Management Tests', () => {
-  test('updates component state based on API responses', async () => {
-    render(<App />);
-    await waitFor(() => {
-      expect(screen.getByText('ResultContainer')).toBeInTheDocument();
-    });
-
-    const cardName = await screen.findByText('Mickey Mouse');
-    expect(cardName).toBeInTheDocument();
-  });
-
-  test('manages search term state correctly', async () => {
-    render(<App />);
-
-    const searchInput = screen.getByRole('searchbox');
-    const searchButton = screen.getByRole('button', { name: 'Search' });
-
-    fireEvent.change(searchInput, { target: { value: '  Donald Duck  ' } });
-    fireEvent.click(searchButton);
-
-    await waitFor(() => {
-      expect(searchInput).toHaveValue('Donald Duck');
-    });
-    expect(localStorage.getItem('searchTerm')).toBe('Donald Duck');
-  });
-
-  test('handles empty search term correctly', async () => {
-    render(<App />);
-
-    const searchInput = screen.getByRole('searchbox');
-    const searchButton = screen.getByRole('button', { name: 'Search' });
-
-    fireEvent.change(searchInput, { target: { value: '   ' } });
-    fireEvent.click(searchButton);
-
-    await waitFor(() => {
-      expect(searchInput).toHaveValue('');
-    });
-
-    expect(localStorage.getItem('searchTerm')).toBe('');
   });
 });

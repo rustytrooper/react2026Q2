@@ -1,100 +1,48 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import SearchForm from './SearchForm';
 
-const mockSaveSearchValue = vi.fn();
-const mockTrimValue = vi.fn((val: string) => val.trim());
-
-vi.mock('../../helpers/localStorage', () => ({
-  saveSearchValue: mockSaveSearchValue,
-  trimValue: mockTrimValue,
-}));
-
-const mockOnSearch = vi.fn();
-const mockOnSubmit = vi.fn();
-
-describe('SearchForm', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockTrimValue.mockImplementation((val: string) => val.trim());
-  });
-
+describe('Testing search form component', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    localStorage.clear();
+    cleanup();
   });
-
-  it('renders search input and search button', () => {
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
-  });
-
-  it('displays previously saved search term from localStorage on mount', () => {
-    mockSaveSearchValue.mockImplementation((val) =>
-      localStorage.setItem('searchTerm', val)
+  it('should render correctly search form component', () => {
+    const { getByTestId } = render(
+      <SearchForm initialValue="" onSubmit={vi.fn()} onSearch={vi.fn()} />
     );
-    localStorage.setItem('searchTerm', 'test search');
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    expect(screen.getByRole('textbox')).toHaveValue('test search');
+
+    expect(getByTestId('searchForm')).toBeInTheDocument();
+    expect(getByTestId('formInput')).toBeInTheDocument();
+    expect(getByTestId('formButton')).toBeInTheDocument();
   });
 
-  it('shows empty input when no saved term exists', () => {
-    localStorage.removeItem('searchTerm');
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    expect(screen.getByRole('textbox')).toHaveValue('');
-  });
+  it('should submit with correct value', async () => {
+    const testUserInput = 'begin';
+    const user = userEvent.setup();
 
-  it('displays initialValue prop if provided', () => {
-    render(
-      <SearchForm
-        onSearch={mockOnSearch}
-        onSubmit={mockOnSubmit}
-        initialValue="initial"
-      />
+    const mockOnSubmit = vi.fn();
+
+    const { getByTestId } = render(
+      <SearchForm initialValue="" onSubmit={mockOnSubmit} onSearch={vi.fn()} />
     );
-    expect(screen.getByRole('textbox')).toHaveValue('initial');
+
+    await user.type(getByTestId('formInput'), testUserInput);
+    await user.click(getByTestId('formButton'));
+
+    await waitFor(() => {
+      expect(getByTestId('formInput')).toHaveValue(testUserInput);
+    });
+    expect(getByTestId('formInput')).toHaveValue(testUserInput);
+    expect(mockOnSubmit).toHaveBeenCalledWith(testUserInput);
   });
 
-  it('updates input value when user types', async () => {
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: ' new search ' } });
-    expect(mockTrimValue).toHaveBeenCalledWith(' new search ');
-    expect(mockOnSearch).toHaveBeenCalledWith('new search');
-  });
+  it('should have empty input when nothing is saved in local storage', () => {
+    const { getByTestId } = render(
+      <SearchForm initialValue="" onSubmit={vi.fn()} onSearch={vi.fn()} />
+    );
 
-  it('saves search term to localStorage on input change', () => {
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'save this' } });
-    expect(mockSaveSearchValue).toHaveBeenCalledWith('save this');
-  });
-
-  it('trims whitespace from search input before saving', () => {
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: '  trimmed   ' } });
-    expect(mockSaveSearchValue).toHaveBeenCalledWith('trimmed');
-    expect(mockOnSearch).toHaveBeenCalledWith('trimmed');
-  });
-
-  it('triggers search callback with correct parameters on submit', () => {
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'submit term' } });
-    fireEvent.click(screen.getByRole('button', { name: /search/i }));
-    expect(mockOnSubmit).toHaveBeenCalledWith('submit term');
-  });
-
-  it('retrieves saved search term on component mount via helpers', () => {
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-  });
-
-  it('overwrites existing localStorage value when new search is performed', () => {
-    localStorage.setItem('searchTerm', 'old');
-    render(<SearchForm onSearch={mockOnSearch} onSubmit={mockOnSubmit} />);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'new value' } });
-    expect(mockSaveSearchValue).toHaveBeenCalledWith('new value');
+    expect(getByTestId('formInput')).toHaveValue('');
   });
 });

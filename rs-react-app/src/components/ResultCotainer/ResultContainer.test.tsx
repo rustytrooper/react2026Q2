@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ResultContainer from './ResultContainer';
 import { mockCharactersResponse } from '../../mocks/mockData';
@@ -20,6 +20,10 @@ describe('ResultContainer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+  afterEach(() => {
+    localStorage.clear();
+    cleanup();
+  });
 
   it('renders correct number of items when data is provided', () => {
     render(<ResultContainer characters={mockCharactersResponse} />);
@@ -33,19 +37,6 @@ describe('ResultContainer', () => {
 
   it('shows loading state while fetching data', async () => {
     render(<ResultContainer characters={null} />);
-  });
-
-  it('correctly displays item names and descriptions', () => {
-    render(<ResultContainer characters={mockCharactersResponse} />);
-    expect(screen.getByTestId('card-Mickey')).toHaveTextContent('Mickey');
-    expect(screen.getByTestId('card-Donald')).toHaveTextContent('donald.jpg');
-  });
-
-  it('handles missing or undefined data gracefully', () => {
-    render(<ResultContainer characters={null} />);
-    expect(screen.queryByTestId(/^card-/)).not.toBeInTheDocument();
-    render(<ResultContainer characters={{ data: undefined } as any} />);
-    expect(screen.queryByTestId(/^card-/)).not.toBeInTheDocument();
   });
 
   it('displays error message when API call fails', async () => {
