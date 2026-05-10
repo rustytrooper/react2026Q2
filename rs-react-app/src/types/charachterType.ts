@@ -1,7 +1,11 @@
 interface Info {
   count: number;
+  totalPages: number;
+  previousPage: number | null;
+  nextPage: string | null;
 }
 export interface Character {
+  info?: Info;
   _id: number;
   films: string[];
   shortFilms: string[];

@@ -1,7 +1,7 @@
 import { Component, type ChangeEvent, type SyntheticEvent } from 'react';
 import { saveSearchValue, trimValue } from '../../helpers/localStorage';
 
-type SearchFormProps = {
+export type SearchFormProps = {
   onSearch: (searchTerm: string) => void;
   onSubmit: (searchTerm: string) => void;
   initialValue?: string;
