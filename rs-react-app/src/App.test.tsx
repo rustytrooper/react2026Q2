@@ -10,6 +10,8 @@ import {
   mockAuntGertie,
 } from './mocks/mockData';
 import { initializeSearchValue, saveSearchValue } from './helpers/localStorage';
+import type { SearchFormProps } from './components/SearchForm/SearchForm';
+import type { Character, DisneyApiResponse } from './types/charachterType';
 
 vi.mock('./helpers/localStorage', () => ({
   initializeSearchValue: vi.fn(),
@@ -18,7 +20,7 @@ vi.mock('./helpers/localStorage', () => ({
 }));
 
 vi.mock('./components/SearchForm/SearchForm', () => ({
-  default: ({ onSubmit, initialValue, onSearch }: any) => (
+  default: ({ onSubmit, initialValue, onSearch }: SearchFormProps) => (
     <form
       data-testid="search-form"
       onSubmit={(e) => {
@@ -42,10 +44,10 @@ vi.mock('./components/SearchForm/SearchForm', () => ({
 }));
 
 vi.mock('./components/ResultCotainer/ResultContainer', () => ({
-  default: ({ characters }: { characters: any }) => (
+  default: ({ characters }: { characters: DisneyApiResponse }) => (
     <div data-testid="result-container">
       {characters?.data?.length === 0 && <div>No results found</div>}
-      {characters?.data?.map((card: any) => (
+      {characters?.data?.map((card: Character) => (
         <div key={card._id} data-testid={`card-${card.name}`}>
           {card.name}
         </div>
