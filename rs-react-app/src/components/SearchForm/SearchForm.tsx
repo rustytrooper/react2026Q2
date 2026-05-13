@@ -1,7 +1,11 @@
 import { Component, type ChangeEvent, type SyntheticEvent } from 'react';
-import { saveSearchValue, trimValue } from '../../helpers/localStorage';
+import {
+  initializeSearchValue,
+  saveSearchValue,
+  trimValue,
+} from '../../helpers/localStorage';
 
-type SearchFormProps = {
+export type SearchFormProps = {
   onSearch: (searchTerm: string) => void;
   onSubmit: (searchTerm: string) => void;
   initialValue?: string;
@@ -14,6 +18,13 @@ type SearchFormState = {
 class SearchForm extends Component<SearchFormProps, SearchFormState> {
   constructor(props: SearchFormProps) {
     super(props);
+    const savedValue = initializeSearchValue();
+    this.state = {
+      value:
+        props.initialValue !== undefined
+          ? props.initialValue
+          : savedValue || '',
+    };
   }
 
   handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -30,16 +41,16 @@ class SearchForm extends Component<SearchFormProps, SearchFormState> {
   };
 
   render() {
-    const { initialValue } = this.props;
-
     return (
       <form
         onSubmit={this.handleSubmit}
         className="flex justify-between mx-auto mt-6 gap-4"
+        data-testid="searchForm"
       >
         <input
           type="text"
-          value={initialValue}
+          // value={initialValue}
+          value={this.state.value}
           onChange={this.handleChange}
           placeholder="Your search term"
           className="
@@ -59,8 +70,12 @@ class SearchForm extends Component<SearchFormProps, SearchFormState> {
           transition-all 
           duration-200
         "
+          data-testid="formInput"
         />
-        <button className="bg-purple-400  rounded-2xl  px-4 py-3 text-white hover:bg-purple-300 cursor-pointer hover:scale-110 transition-all duration-200">
+        <button
+          className="bg-purple-400  rounded-2xl  px-4 py-3 text-white hover:bg-purple-300 cursor-pointer hover:scale-110 transition-all duration-200"
+          data-testid="formButton"
+        >
           Search
         </button>
       </form>

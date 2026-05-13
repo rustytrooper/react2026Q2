@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Loader Component > Snapshot > should match snapshot 1`] = `
+<div>
+  <div
+    class="flex items-center justify-center h-screen"
+  >
+    <div
+      class="flex space-x-1"
+    >
+      <div
+        class="w-3 h-3 bg-purple-400 rounded-full bounce"
+      />
+      <div
+        class="w-3 h-3 bg-purple-400 rounded-full bounce"
+      />
+      <div
+        class="w-3 h-3 bg-purple-400 rounded-full bounce"
+      />
+    </div>
+  </div>
+</div>
+`;
