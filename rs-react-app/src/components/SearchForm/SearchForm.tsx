@@ -1,4 +1,4 @@
-import { Component, type ChangeEvent, type SyntheticEvent } from 'react';
+import {  useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from 'react';
 import {
   initializeSearchValue,
   saveSearchValue,
@@ -11,47 +11,34 @@ export type SearchFormProps = {
   initialValue?: string;
 };
 
-type SearchFormState = {
-  value: string;
-};
 
-class SearchForm extends Component<SearchFormProps, SearchFormState> {
-  constructor(props: SearchFormProps) {
-    super(props);
+function SearchForm ({onSearch,onSubmit,initialValue}: SearchFormProps): ReactNode {
     const savedValue = initializeSearchValue();
-    this.state = {
-      value:
-        props.initialValue !== undefined
-          ? props.initialValue
-          : savedValue || '',
-    };
-  }
-
-  handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  
+    const [initValue, setInitValue] = useState(initialValue !== undefined? initialValue: savedValue || '')
+  
+ const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     const changedSearchValue = trimValue(e.target.value);
     saveSearchValue(changedSearchValue);
-    this.props.onSearch(changedSearchValue);
-    this.setState({ value: changedSearchValue });
+    onSearch(changedSearchValue);
+    setInitValue( changedSearchValue );
   };
 
-  handleSubmit = (e: SyntheticEvent) => {
+  const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
-    this.props.onSubmit(this.state.value);
+    onSubmit(initValue);
   };
-
-  render() {
     return (
       <form
-        onSubmit={this.handleSubmit}
+        onSubmit={handleSubmit}
         className="flex justify-between mx-auto mt-6 gap-4"
         data-testid="searchForm"
       >
         <input
           type="text"
-          // value={initialValue}
-          value={this.state.value}
-          onChange={this.handleChange}
+          value={initValue}
+          onChange={handleChange}
           placeholder="Your search term"
           className="
           w-100
@@ -79,8 +66,7 @@ class SearchForm extends Component<SearchFormProps, SearchFormState> {
           Search
         </button>
       </form>
-    );
-  }
+    ); 
 }
 
-export default SearchForm;
+export default SearchForm
