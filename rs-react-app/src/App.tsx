@@ -2,7 +2,7 @@ import './App.css';
 import SearchForm from './components/SearchForm/SearchForm';
 import ResultContainer from './components/ResultCotainer/ResultContainer';
 import { fetchData, fetchFilteredData } from './helpers/fetchData';
-import { Component } from 'react';
+import {  useEffect, useState, type ReactNode } from 'react';
 import { type DisneyApiResponse } from './types/charachterType';
 import {
   initializeSearchValue,
@@ -13,97 +13,76 @@ import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { ErrorButton } from './components/ErrorBoundary/ErrorButton';
 import { Loader } from './components/Loader/Loader';
 
-type AppProps = {};
 
-type AppState = {
-  cards: DisneyApiResponse | null;
-  searchTerm: string;
-  loading: boolean;
-  error: boolean;
-};
-class App extends Component<AppProps, AppState> {
-  constructor(props: AppProps) {
-    super(props);
-    this.state = {
-      cards: null,
-      searchTerm: '',
-      loading: true,
-      error: false,
-    };
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-  componentDidMount() {
-    this.loadInitialData();
-  }
+function App ( ): ReactNode{
+ 
+  const [cards, setCards] = useState<DisneyApiResponse| null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
 
-  loadInitialData = async () => {
+  const loadInitialData = async () => {
     try {
       const savedSearchTerm = initializeSearchValue();
       if (savedSearchTerm && savedSearchTerm.trim() !== '') {
         const filteredCards = await fetchFilteredData(savedSearchTerm);
-        this.setState({
-          cards: filteredCards,
-          searchTerm: savedSearchTerm,
-          loading: false,
-          error: false,
-        });
+        setCards(filteredCards)
+        setSearchTerm(savedSearchTerm)
+        setLoading(false)
+        setHasError(false)
       } else {
         const allCards = await fetchData();
-        this.setState({
-          cards: allCards,
-          searchTerm: '',
-          loading: false,
-        });
+        setCards(allCards)
+        setSearchTerm('')
+        setLoading(false)
       }
     } catch (error) {
-      this.setState({ error: true, loading: false });
+      setHasError(true)
+      setLoading(false)
       console.error(error);
     }
   };
+ 
+  useEffect(()=> {
+    loadInitialData()
+  },[])
 
-  handleSearch = async (searchTerm: string) => {
+ 
+
+  const handleSearch = async (searchTerm: string) => {
     const trimmedValue = trimValue(searchTerm);
     saveSearchValue(trimmedValue);
-    this.setState({ searchTerm: trimmedValue });
+    setSearchTerm(trimmedValue)
   };
 
-  handleSubmit = async (searchTerm: string) => {
+  const handleSubmit = async (searchTerm: string) => {
     const trimmedValue = trimValue(searchTerm);
     saveSearchValue(trimmedValue);
     try {
-      this.setState({ loading: true });
       await new Promise((resolve) => setTimeout(resolve, 800));
       const fetchedFilteredData = await fetchFilteredData(trimmedValue);
-      this.setState({
-        cards: fetchedFilteredData,
-        searchTerm: trimmedValue,
-        error: false,
-      });
+      setCards(fetchedFilteredData)
+      setSearchTerm(trimmedValue)
+      setHasError(false)
     } catch (error) {
-      this.setState({ error: true });
+      setHasError( true );
       console.error(error);
     } finally {
-      this.setState({ loading: false });
+      setLoading( false );
     }
   };
-  render() {
-    const { loading } = this.state;
-    if (loading) {
-      return <Loader />;
-    }
-    return (
-      <ErrorBoundary>
+  
+  return (loading?<Loader /> :  <ErrorBoundary>
         <div className="flex justify-center items-center">
           <SearchForm
-            onSearch={this.handleSearch}
-            onSubmit={this.handleSubmit}
-            initialValue={this.state.searchTerm}
+            onSearch={handleSearch}
+            onSubmit={handleSubmit}
+            initialValue={searchTerm}
           />{' '}
         </div>
-        <ResultContainer characters={this.state.cards} />
+        <ResultContainer characters={cards} />
         <ErrorButton />
-      </ErrorBoundary>
-    );
-  }
+      </ErrorBoundary>)
+  
 }
 export default App;
