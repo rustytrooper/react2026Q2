@@ -1,73 +1,23 @@
 import './App.css';
 import SearchForm from './components/SearchForm/SearchForm';
 import ResultContainer from './components/ResultCotainer/ResultContainer';
-import { fetchData, fetchFilteredData } from './helpers/fetchData';
-import { useEffect, useState, type ReactNode } from 'react';
-import { type DisneyApiResponse } from './types/charachterType';
-import {
-  initializeSearchValue,
-  saveSearchValue,
-  trimValue,
-} from './helpers/localStorage';
+import {  type ReactNode } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
-import { ErrorButton } from './components/ErrorBoundary/ErrorButton';
 import { Loader } from './components/Loader/Loader';
 import { Outlet } from 'react-router';
+import { useDisneyData } from './hooks/useFetchCharacters/useFetchCharacters';
+import { Pagination } from './components/Pagination/Pagination';
 
 function App(): ReactNode {
-  const [cards, setCards] = useState<DisneyApiResponse | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-
-  const loadInitialData = async () => {
-    try {
-      const savedSearchTerm = initializeSearchValue();
-      if (savedSearchTerm && savedSearchTerm.trim() !== '') {
-        const filteredCards = await fetchFilteredData(savedSearchTerm);
-        setCards(filteredCards);
-        setSearchTerm(savedSearchTerm);
-        setLoading(false);
-        setHasError(false);
-      } else {
-        const allCards = await fetchData();
-        setCards(allCards);
-        setSearchTerm('');
-        setLoading(false);
-      }
-    } catch (error) {
-      setHasError(true);
-      setLoading(false);
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const handleSearch = async (searchTerm: string) => {
-    const trimmedValue = trimValue(searchTerm);
-    saveSearchValue(trimmedValue);
-    setSearchTerm(trimmedValue);
-  };
-
-  const handleSubmit = async (searchTerm: string) => {
-    const trimmedValue = trimValue(searchTerm);
-    saveSearchValue(trimmedValue);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const fetchedFilteredData = await fetchFilteredData(trimmedValue);
-      setCards(fetchedFilteredData);
-      setSearchTerm(trimmedValue);
-      setHasError(false);
-    } catch (error) {
-      setHasError(true);
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const {
+    data,
+    loading,
+    currentPage,
+    totalPages,
+    searchQueryFromURL,
+    handleSubmit,
+    handlePageChange
+  } = useDisneyData();
 
   return loading ? (
     <Loader />
@@ -75,14 +25,13 @@ function App(): ReactNode {
     <ErrorBoundary>
       <div className="flex justify-center items-center">
         <SearchForm
-          onSearch={handleSearch}
           onSubmit={handleSubmit}
-          initialValue={searchTerm}
+          initialValue={searchQueryFromURL}
         />{' '}
       </div>
-      <ResultContainer characters={cards} />
+      <ResultContainer characters={data} />
       <Outlet/>
-      <ErrorButton />
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange}/>
       
     </ErrorBoundary>
   );
