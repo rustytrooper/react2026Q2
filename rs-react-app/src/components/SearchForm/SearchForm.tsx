@@ -5,26 +5,19 @@ import {
   type ReactNode,
   type SyntheticEvent,
 } from 'react';
-import {
-  saveSearchValue,
-  trimValue,
-} from '../../helpers/localStorage';
+import { saveSearchValue, trimValue } from '../../helpers/localStorage';
 
 export type SearchFormProps = {
   onSubmit: (searchTerm: string) => void;
   initialValue?: string;
 };
 
-function SearchForm({
-  onSubmit,
-  initialValue,
-}: SearchFormProps): ReactNode {
-
-   const [searchValue, setSearchValue] = useState(initialValue || '');
+function SearchForm({ onSubmit, initialValue }: SearchFormProps): ReactNode {
+  const [searchValue, setSearchValue] = useState(initialValue || '');
 
   useEffect(() => {
     setSearchValue(initialValue || '');
-  }, [initialValue]); 
+  }, [initialValue]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const changedSearchValue = trimValue(e.target.value);
@@ -34,7 +27,7 @@ function SearchForm({
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
-      onSubmit(searchValue);
+    onSubmit(searchValue);
   };
 
   return (

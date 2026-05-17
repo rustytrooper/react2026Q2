@@ -1,4 +1,4 @@
-import type { DisneyApiResponse } from "../types/charachterType";
+import type { DisneyApiResponse } from '../types/charachterType';
 
 const defaultPage = 1;
 const defaultPageSize = 10;
@@ -18,7 +18,9 @@ export async function fetchData(
   }
 }
 
-export async function fetchCharacterById(id: string): Promise<DisneyApiResponse | null> {
+export async function fetchCharacterById(
+  id: string
+): Promise<DisneyApiResponse | null> {
   try {
     const url = `https://api.disneyapi.dev/character/${id}`;
     const response = await fetch(url);

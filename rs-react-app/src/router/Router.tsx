@@ -1,4 +1,4 @@
-import { createBrowserRouter} from 'react-router';
+import { createBrowserRouter } from 'react-router';
 import App from '../App';
 import { CharacterDetail } from '../components/CharacterDetail/CharacterDetail';
 import { About } from '../pages/About/About';
@@ -11,16 +11,16 @@ export const Router = createBrowserRouter([
     path: '/',
     errorElement: <p>Sorry, something went wrong</p>,
     children: [
-       {
-       path: '',
+      {
+        path: '',
         Component: App,
         children: [
-           {
-           Component: CharacterDetail,
+          {
+            Component: CharacterDetail,
             path: 'character/:id',
           },
-        ]
-      },    
+        ],
+      },
       {
         Component: About,
         path: 'about',

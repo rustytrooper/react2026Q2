@@ -3,14 +3,12 @@ type CardProps = {
   name: string;
   films: string[];
   tvShows: string[];
-
 };
 
-function Card ({ imageUrl,name,films,tvShows}: CardProps) {
-  
-    return (
-      <div
-        className="
+function Card({ imageUrl, name, films, tvShows }: CardProps) {
+  return (
+    <div
+      className="
         w-full 
         h-100
         max-w-[280px] 
@@ -27,9 +25,9 @@ function Card ({ imageUrl,name,films,tvShows}: CardProps) {
         border 
         border-gray-100
       "
-      >
-        <div
-          className="
+    >
+      <div
+        className="
           flex 
           justify-center 
           w-11/12 
@@ -41,11 +39,11 @@ function Card ({ imageUrl,name,films,tvShows}: CardProps) {
           rounded-xl 
           cursor-pointer
         "
-        >
-          <img
-            src={imageUrl}
-            alt={name}
-            className="
+      >
+        <img
+          src={imageUrl}
+          alt={name}
+          className="
               w-full 
               h-full 
               object-cover 
@@ -53,27 +51,24 @@ function Card ({ imageUrl,name,films,tvShows}: CardProps) {
               duration-300 
               hover:scale-110
             "
-          />
-        </div>
-
-        <div className="p-4 text-center">
-          <p className="font-semibold text-gray-800 text-base sm:text-lg">
-            {name}
-          </p>
-
-          <p className="text-gray-600 text-xs sm:text-sm mt-2 line-clamp-2">
-            <span className="font-medium">Films:</span>{' '}
-            {films.join(', ')}
-          </p>
-
-          <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2">
-            <span className="font-medium">TV shows:</span>{' '}
-            {tvShows.join(', ')}
-          </p>
-        </div>
+        />
       </div>
-    );
-  
+
+      <div className="p-4 text-center">
+        <p className="font-semibold text-gray-800 text-base sm:text-lg">
+          {name}
+        </p>
+
+        <p className="text-gray-600 text-xs sm:text-sm mt-2 line-clamp-2">
+          <span className="font-medium">Films:</span> {films.join(', ')}
+        </p>
+
+        <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2">
+          <span className="font-medium">TV shows:</span> {tvShows.join(', ')}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default Card;

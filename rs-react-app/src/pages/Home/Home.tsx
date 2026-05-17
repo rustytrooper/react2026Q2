@@ -4,9 +4,8 @@ import { Outlet } from 'react-router';
 export function Home(): ReactNode {
   return (
     <>
-     <h1>Home</h1>
-     <Outlet/>
+      <h1>Home</h1>
+      <Outlet />
     </>
- 
-);
+  );
 }

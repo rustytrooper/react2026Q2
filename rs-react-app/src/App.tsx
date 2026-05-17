@@ -1,7 +1,7 @@
 import './App.css';
 import SearchForm from './components/SearchForm/SearchForm';
 import ResultContainer from './components/ResultCotainer/ResultContainer';
-import {  type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { Loader } from './components/Loader/Loader';
 import { Outlet } from 'react-router';
@@ -9,14 +9,14 @@ import { useDisneyData } from './hooks/useFetchCharacters/useFetchCharacters';
 import { Pagination } from './components/Pagination/Pagination';
 
 function App(): ReactNode {
-    const {
+  const {
     data,
     loading,
     currentPage,
     totalPages,
     searchQueryFromURL,
     handleSubmit,
-    handlePageChange
+    handlePageChange,
   } = useDisneyData();
 
   return loading ? (
@@ -30,9 +30,12 @@ function App(): ReactNode {
         />{' '}
       </div>
       <ResultContainer characters={data} />
-      <Outlet/>
-      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange}/>
-      
+      <Outlet />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </ErrorBoundary>
   );
 }
