@@ -1,27 +1,26 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter} from 'react-router';
 import App from '../App';
-import { Home } from '../pages/Home/Home';
 import { CharacterDetail } from '../components/CharacterDetail/CharacterDetail';
 import { About } from '../pages/About/About';
 import { NotFound } from '../pages/NotFound/NotFound';
+import { Layout } from '../components/Layout/Layout';
 
 export const Router = createBrowserRouter([
   {
-    Component: App,
+    Component: Layout,
     path: '/',
     errorElement: <p>Sorry, something went wrong</p>,
     children: [
-      {
-        Component: Home,
-        path: '',
-        errorElement: <p>Sorry, something went wrong</p>,
+       {
+       path: '',
+        Component: App,
         children: [
-          {
-            Component: CharacterDetail,
+           {
+           Component: CharacterDetail,
             path: 'character/:id',
           },
-        ],
-      },
+        ]
+      },    
       {
         Component: About,
         path: 'about',

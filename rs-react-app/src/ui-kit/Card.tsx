@@ -1,14 +1,13 @@
-import { Component } from 'react';
-
 type CardProps = {
   imageUrl: string;
   name: string;
   films: string[];
   tvShows: string[];
+
 };
 
-class Card extends Component<CardProps> {
-  render() {
+function Card ({ imageUrl,name,films,tvShows}: CardProps) {
+  
     return (
       <div
         className="
@@ -44,8 +43,8 @@ class Card extends Component<CardProps> {
         "
         >
           <img
-            src={this.props.imageUrl}
-            alt={this.props.name}
+            src={imageUrl}
+            alt={name}
             className="
               w-full 
               h-full 
@@ -59,22 +58,22 @@ class Card extends Component<CardProps> {
 
         <div className="p-4 text-center">
           <p className="font-semibold text-gray-800 text-base sm:text-lg">
-            {this.props.name}
+            {name}
           </p>
 
           <p className="text-gray-600 text-xs sm:text-sm mt-2 line-clamp-2">
             <span className="font-medium">Films:</span>{' '}
-            {this.props.films.join(', ')}
+            {films.join(', ')}
           </p>
 
           <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2">
             <span className="font-medium">TV shows:</span>{' '}
-            {this.props.tvShows.join(', ')}
+            {tvShows.join(', ')}
           </p>
         </div>
       </div>
     );
-  }
+  
 }
 
 export default Card;

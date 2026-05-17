@@ -1,8 +1,13 @@
 import type { DisneyApiResponse } from '../types/charachterType';
 
-export async function fetchData(): Promise<DisneyApiResponse | null> {
+export async function fetchData(id?: string): Promise<DisneyApiResponse | null> {
   try {
-    const data = await fetch('https://api.disneyapi.dev/character');
+    let data
+    if (id) {
+      data = await fetch(`https://api.disneyapi.dev/character/${id}`);
+    } else {
+      data = await fetch('https://api.disneyapi.dev/character');
+    }
     const result = await data.json();
     return result;
   } catch (e) {

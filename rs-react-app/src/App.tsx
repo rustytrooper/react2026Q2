@@ -12,6 +12,7 @@ import {
 import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 import { ErrorButton } from './components/ErrorBoundary/ErrorButton';
 import { Loader } from './components/Loader/Loader';
+import { Outlet } from 'react-router';
 
 function App(): ReactNode {
   const [cards, setCards] = useState<DisneyApiResponse | null>(null);
@@ -80,7 +81,9 @@ function App(): ReactNode {
         />{' '}
       </div>
       <ResultContainer characters={cards} />
+      <Outlet/>
       <ErrorButton />
+      
     </ErrorBoundary>
   );
 }
