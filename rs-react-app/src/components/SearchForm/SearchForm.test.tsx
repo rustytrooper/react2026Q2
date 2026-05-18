@@ -10,7 +10,7 @@ describe('Testing search form component', () => {
   });
   it('should render correctly search form component', () => {
     const { getByTestId } = render(
-      <SearchForm initialValue="" onSubmit={vi.fn()} onSearch={vi.fn()} />
+      <SearchForm initialValue="" onSubmit={vi.fn()} />
     );
 
     expect(getByTestId('searchForm')).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('Testing search form component', () => {
     const mockOnSubmit = vi.fn();
 
     const { getByTestId } = render(
-      <SearchForm initialValue="" onSubmit={mockOnSubmit} onSearch={vi.fn()} />
+      <SearchForm initialValue="" onSubmit={mockOnSubmit} />
     );
 
     await user.type(getByTestId('formInput'), testUserInput);
@@ -40,7 +40,7 @@ describe('Testing search form component', () => {
 
   it('should have empty input when nothing is saved in local storage', () => {
     const { getByTestId } = render(
-      <SearchForm initialValue="" onSubmit={vi.fn()} onSearch={vi.fn()} />
+      <SearchForm initialValue="" onSubmit={vi.fn()} />
     );
 
     expect(getByTestId('formInput')).toHaveValue('');
