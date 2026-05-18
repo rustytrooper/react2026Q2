@@ -23,19 +23,23 @@ function App(): ReactNode {
     <Loader />
   ) : (
     <ErrorBoundary>
-      <div className="flex justify-center items-center">
-        <SearchForm
-          onSubmit={handleSubmit}
-          initialValue={searchQueryFromURL}
-        />{' '}
+      <div className="w-full bg-gray-100">
+        <div className="container w-[90vw] mx-auto px-4">
+          <div className="flex justify-center items-center ">
+            <SearchForm
+              onSubmit={handleSubmit}
+              initialValue={searchQueryFromURL}
+            />{' '}
+          </div>
+          <ResultContainer characters={data} />
+          <Outlet />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
-      <ResultContainer characters={data} />
-      <Outlet />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
     </ErrorBoundary>
   );
 }
