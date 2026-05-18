@@ -56,7 +56,7 @@ export const mockAuntGertie = {
   },
 };
 
-const mockOmitAuntGertie = {
+export const mockOmitAuntGertie = {
   _id: 367,
   films: ["Mickey's Once Upon a Christmas"],
   shortFilms: [],
@@ -70,7 +70,7 @@ const mockOmitAuntGertie = {
     'https://static.wikia.nocookie.net/disney/images/c/cd/Aunt-Gertie.jpg',
   url: 'https://api.disneyapi.dev/characters/367',
 };
-const mockAvatarSingh = {
+export const mockAvatarSingh = {
   info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
   data: {
     _id: 378,
@@ -103,7 +103,7 @@ const mockOmitAvatarSingh = {
   url: 'https://api.disneyapi.dev/characters/378',
 };
 
-const mockAvemetrus = {
+export const mockAvemetrus = {
   info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
   data: {
     _id: 379,
