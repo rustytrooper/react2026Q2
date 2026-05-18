@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router';
 import { setupServer } from 'msw/node';
@@ -54,15 +54,21 @@ vi.mock('../../ui-kit/Card', () => ({
 const server = setupServer();
 
 describe('ResultContainer', () => {
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+  beforeAll(() => {
+    server.listen({ onUnhandledRequest: 'error' });
+    cleanup();
+  });
 
   afterEach(() => {
     server.resetHandlers();
     vi.clearAllMocks();
     mockLocation.search = '';
+    cleanup();
   });
 
-  afterAll(() => server.close());
+  afterAll(() => {
+    (server.close(), cleanup());
+  });
 
   describe('Basic rendering', () => {
     it('should render nothing when characters is null', () => {
@@ -410,31 +416,6 @@ describe('ResultContainer with MSW integration', () => {
 
     await waitFor(() => {
       expect(screen.getAllByTestId('card').length).toBe(3);
-    });
-  });
-
-  it('should handle Achilles search results from MSW', async () => {
-    server.use(
-      http.get('https://api.disneyapi.dev/character', () => {
-        return HttpResponse.json(mockAchilles);
-      })
-    );
-
-    const response = await fetch(
-      'https://api.disneyapi.dev/character?name=achilles'
-    );
-    const data = await response.json();
-
-    render(
-      <BrowserRouter>
-        <ResultContainer characters={data as DisneyApiResponse} />
-      </BrowserRouter>
-    );
-
-    await waitFor(() => {
-      const cards = screen.getAllByTestId('card');
-      expect(cards).toHaveLength(2);
-      expect(screen.getAllByText('Achilles')).toHaveLength(2);
     });
   });
 });

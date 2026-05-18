@@ -43,6 +43,61 @@ export declare const mockAuntGertie: {
     url: string;
   };
 };
+export declare const mockOmitAuntGertie: {
+  _id: number;
+  films: string[];
+  shortFilms: never[];
+  tvShows: never[];
+  videoGames: never[];
+  parkAttractions: never[];
+  allies: never[];
+  enemies: never[];
+  name: string;
+  imageUrl: string;
+  url: string;
+};
+export declare const mockAvatarSingh: {
+  info: {
+    count: number;
+    totalPages: number;
+    previousPage: null;
+    nextPage: null;
+  };
+  data: {
+    _id: number;
+    films: never[];
+    shortFilms: never[];
+    tvShows: never[];
+    videoGames: never[];
+    parkAttractions: never[];
+    allies: never[];
+    enemies: never[];
+    name: string;
+    imageUrl: string;
+    url: string;
+  };
+};
+export declare const mockAvemetrus: {
+  info: {
+    count: number;
+    totalPages: number;
+    previousPage: null;
+    nextPage: null;
+  };
+  data: {
+    _id: number;
+    films: never[];
+    shortFilms: never[];
+    tvShows: string[];
+    videoGames: never[];
+    parkAttractions: never[];
+    allies: never[];
+    enemies: never[];
+    name: string;
+    imageUrl: string;
+    url: string;
+  };
+};
 export declare const mockCharactersResponse: {
   info: {
     count: number;
