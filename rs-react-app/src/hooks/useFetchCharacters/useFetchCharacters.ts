@@ -21,8 +21,6 @@ export function useDisneyData() {
   const [error, setError] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
 
-  const [isInitialized, setIsInitialized] = useState(false);
-
   const loadData = useCallback(async (query: string, page: number) => {
     setLoading(true);
     setError(false);
@@ -46,7 +44,6 @@ export function useDisneyData() {
     const initialize = async () => {
       if (searchQueryFromURL) {
         await loadData(searchQueryFromURL, currentPage);
-        setIsInitialized(true);
         return;
       }
 
@@ -56,17 +53,10 @@ export function useDisneyData() {
       } else {
         await loadData('', currentPage);
       }
-      setIsInitialized(true);
     };
 
     initialize();
-  }, []);
-
-  useEffect(() => {
-    if (isInitialized) {
-      loadData(searchQueryFromURL, currentPage);
-    }
-  }, [searchQueryFromURL, currentPage, loadData, isInitialized]);
+  }, [searchQueryFromURL, currentPage]);
 
   const handleSubmit = useCallback(
     (term: string) => {

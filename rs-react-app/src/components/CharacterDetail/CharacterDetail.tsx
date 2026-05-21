@@ -22,9 +22,9 @@ export function CharacterDetail(): ReactNode {
     setError(false);
 
     fetchCharacterById(id)
-      .then((response) => {
-        if (response && response.data) {
-          const characterData = response.data as unknown as Character;
+      .then((response: Character | null) => {
+        if (response && response) {
+          const characterData = response;
           setCharacter(characterData);
         } else {
           setCharacter(null);

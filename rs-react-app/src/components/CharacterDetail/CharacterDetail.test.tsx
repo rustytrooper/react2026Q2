@@ -56,13 +56,11 @@ describe('CharacterDetail', () => {
 
   it('should display character data when loaded successfully', async () => {
     const mockCharacter = {
-      data: {
-        _id: 367,
-        name: 'Aunt Gertie',
-        imageUrl: 'https://example.com/image.jpg',
-        films: ["Mickey's Once Upon a Christmas"],
-        tvShows: [],
-      },
+      _id: 367,
+      name: 'Aunt Gertie',
+      imageUrl: 'https://example.com/image.jpg',
+      films: ["Mickey's Once Upon a Christmas"],
+      tvShows: [],
     };
     (fetchCharacterById as Mock).mockResolvedValue(mockCharacter);
 
@@ -78,7 +76,7 @@ describe('CharacterDetail', () => {
   });
 
   it('should return null when response has no data', async () => {
-    (fetchCharacterById as Mock).mockResolvedValue({ data: null });
+    (fetchCharacterById as Mock).mockResolvedValue(null);
     const { container } = renderWithRouter(<CharacterDetail />);
 
     await waitFor(() => {
@@ -90,13 +88,11 @@ describe('CharacterDetail', () => {
 
   it('should navigate back on close button click', async () => {
     const mockCharacter = {
-      data: {
-        _id: 367,
-        name: 'Aunt Gertie',
-        imageUrl: 'https://example.com/image.jpg',
-        films: [],
-        tvShows: [],
-      },
+      _id: 367,
+      name: 'Aunt Gertie',
+      imageUrl: 'https://example.com/image.jpg',
+      films: [],
+      tvShows: [],
     };
     (fetchCharacterById as Mock).mockResolvedValue(mockCharacter);
     mockLocation.search = '?page=2';

@@ -29,6 +29,7 @@ function App(): ReactNode {
             <SearchForm
               onSubmit={handleSubmit}
               initialValue={searchQueryFromURL}
+              key={searchQueryFromURL}
             />{' '}
           </div>
           <ResultContainer characters={data} />
