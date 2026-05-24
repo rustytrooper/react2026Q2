@@ -25,7 +25,11 @@ export async function fetchCharacterById(
     const url = `https://api.disneyapi.dev/character/${id}`;
     const response = await fetch(url);
     const result = await response.json();
-    return result as Character;
+
+    if (result && result.data) {
+      return result.data as Character;
+    }
+    return null;
   } catch (e) {
     console.error('Error while fetching data', e);
     throw e;
