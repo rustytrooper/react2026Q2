@@ -1,11 +1,25 @@
+import useDisneyStore from '../store/useDownloadData';
+
 type CardProps = {
   imageUrl: string;
   name: string;
   films: string[];
   tvShows: string[];
+  id: number;
 };
 
-function Card({ imageUrl, name, films, tvShows }: CardProps) {
+function Card({ imageUrl, name, films, tvShows, id }: CardProps) {
+  const selectCharacter = useDisneyStore((state) => state.selectCharacter);
+  const isSelected = useDisneyStore((state) => state.selectedIds.has(id));
+
+  const handleCheckboxClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    selectCharacter(id);
+    console.log(
+      'After toggle, selected IDs:',
+      Array.from(useDisneyStore.getState().selectedIds)
+    );
+  };
   return (
     <div
       className="
@@ -26,6 +40,20 @@ function Card({ imageUrl, name, films, tvShows }: CardProps) {
         border-gray-100
       "
     >
+      <input
+        type="checkbox"
+        checked={isSelected}
+        onClick={handleCheckboxClick}
+        className="
+          accent-white
+          checked:accent-purple-400
+          w-5 
+          h-5
+          mt-2
+          cursor-pointer
+          ml-60
+        "
+      />
       <div
         className="
           flex 

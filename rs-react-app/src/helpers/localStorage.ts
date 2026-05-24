@@ -12,6 +12,7 @@ export function initializeSearchValue() {
     }
   } catch (e) {
     console.error('error while geting access to locale storage', e);
+    throw e;
   }
 }
 
@@ -21,5 +22,6 @@ export function saveSearchValue(searchTerm = '') {
     localStorage.setItem(STORAGE_KEY, trimmedValue);
   } catch (e) {
     console.error('error while geting access to locale storage', e);
+    throw e;
   }
 }

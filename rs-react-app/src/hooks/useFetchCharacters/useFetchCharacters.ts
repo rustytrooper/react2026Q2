@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { fetchData, fetchFilteredData } from '../../helpers/fetchData';
+import { useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router';
 import {
   initializeSearchValue,
   saveSearchValue,
   trimValue,
 } from '../../helpers/localStorage';
-import type { DisneyApiResponse } from '../../types/charachterType';
-import { useSearchParams } from 'react-router';
+import useDisneyStore from '../../store/useDownloadData';
 
 const itemsPerPage = 10;
 
@@ -16,57 +15,34 @@ export function useDisneyData() {
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const searchQueryFromURL = searchParams.get('query') || '';
 
-  const [data, setData] = useState<DisneyApiResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [totalPages, setTotalPages] = useState(0);
+  const data = useDisneyStore((state) => state.data);
+  const loading = useDisneyStore((state) => state.loading);
+  const error = useDisneyStore((state) => state.error);
+  const totalPages = useDisneyStore((state) => state.totalPages);
+  const loadData = useDisneyStore((state) => state.loadData);
 
-  const [isInitialized, setIsInitialized] = useState(false);
+  const clearSelection = useDisneyStore((state) => state.clearSelection);
+  const getSelectedCount = useDisneyStore((state) => state.getSelectedCount);
+  const getSelectedCharacters = useDisneyStore(
+    (state) => state.getSelectedCharacters
+  );
 
-  const loadData = useCallback(async (query: string, page: number) => {
-    setLoading(true);
-    setError(false);
-    try {
-      let response: DisneyApiResponse | null;
-      if (query) {
-        response = await fetchFilteredData(query, page, itemsPerPage);
-      } else {
-        response = await fetchData(page, itemsPerPage);
-      }
-      setData(response);
-      setTotalPages(response?.info?.totalPages || 0);
-    } catch (err) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  useEffect(() => {
+    loadData(searchQueryFromURL, currentPage, itemsPerPage);
+  }, [searchQueryFromURL, currentPage, loadData]);
 
   useEffect(() => {
     const initialize = async () => {
-      if (searchQueryFromURL) {
-        await loadData(searchQueryFromURL, currentPage);
-        setIsInitialized(true);
-        return;
+      if (!searchQueryFromURL) {
+        const savedQuery = initializeSearchValue();
+        if (savedQuery) {
+          setSearchParams({ query: savedQuery, page: '1' });
+        }
       }
-
-      const savedQuery = initializeSearchValue();
-      if (savedQuery) {
-        setSearchParams({ query: savedQuery, page: '1' });
-      } else {
-        await loadData('', currentPage);
-      }
-      setIsInitialized(true);
     };
 
     initialize();
-  }, []);
-
-  useEffect(() => {
-    if (isInitialized) {
-      loadData(searchQueryFromURL, currentPage);
-    }
-  }, [searchQueryFromURL, currentPage, loadData, isInitialized]);
+  }, [searchQueryFromURL, setSearchParams]);
 
   const handleSubmit = useCallback(
     (term: string) => {
@@ -76,7 +52,6 @@ export function useDisneyData() {
           prev.delete('page');
           return prev;
         });
-        loadData('', 1);
       } else {
         const trimmed = trimValue(term);
         saveSearchValue(trimmed);
@@ -88,12 +63,14 @@ export function useDisneyData() {
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      setSearchParams({
-        query: searchQueryFromURL,
-        page: newPage.toString(),
-      });
+      const params = new URLSearchParams(searchParams);
+      if (searchQueryFromURL) {
+        params.set('query', searchQueryFromURL);
+      }
+      params.set('page', newPage.toString());
+      setSearchParams(params);
     },
-    [setSearchParams, searchQueryFromURL]
+    [setSearchParams, searchQueryFromURL, searchParams]
   );
 
   return {
@@ -103,7 +80,12 @@ export function useDisneyData() {
     currentPage,
     totalPages,
     searchQueryFromURL,
+
     handleSubmit,
     handlePageChange,
+
+    clearSelection,
+    getSelectedCount,
+    getSelectedCharacters,
   };
 }

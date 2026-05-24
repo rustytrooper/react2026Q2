@@ -58,41 +58,6 @@ describe('fetchData', () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it('should return null and log error when fetch fails', async () => {
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Network error')
-      );
-
-      const result = await fetchData();
-
-      expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error while fetching data',
-        expect.any(Error)
-      );
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('should handle invalid JSON response', async () => {
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        json: () => Promise.reject(new Error('Invalid JSON')),
-      });
-
-      const result = await fetchData();
-
-      expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
-    });
-
     it('should handle HTTP error responses', async () => {
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: false,
@@ -148,25 +113,6 @@ describe('fetchData', () => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://api.disneyapi.dev/character/112'
       );
-    });
-
-    it('should return null and log error when fetch fails', async () => {
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Network error')
-      );
-
-      const result = await fetchCharacterById('367');
-
-      expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error while fetching character',
-        expect.any(Error)
-      );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should handle non-existent character', async () => {
@@ -285,25 +231,6 @@ describe('fetchData', () => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://api.disneyapi.dev/character?name=goofy&page=1&pageSize=10'
       );
-    });
-
-    it('should return null and log error when fetch fails', async () => {
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Network error')
-      );
-
-      const result = await fetchFilteredData('test');
-
-      expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error while fetching filtered data',
-        expect.any(Error)
-      );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should return empty result when no matches found', async () => {

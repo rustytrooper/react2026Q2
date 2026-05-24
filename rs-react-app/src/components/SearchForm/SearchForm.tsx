@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useState,
   type ChangeEvent,
   type ReactNode,
@@ -14,10 +13,6 @@ export type SearchFormProps = {
 
 function SearchForm({ onSubmit, initialValue }: SearchFormProps): ReactNode {
   const [searchValue, setSearchValue] = useState(initialValue || '');
-
-  useEffect(() => {
-    setSearchValue(initialValue || '');
-  }, [initialValue]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const changedSearchValue = trimValue(e.target.value);

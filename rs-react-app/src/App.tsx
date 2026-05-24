@@ -7,6 +7,7 @@ import { Loader } from './components/Loader/Loader';
 import { Outlet } from 'react-router';
 import { useDisneyData } from './hooks/useFetchCharacters/useFetchCharacters';
 import { Pagination } from './components/Pagination/Pagination';
+import SelectionFlyout from './components/FlyOut/FlyOut';
 
 function App(): ReactNode {
   const {
@@ -29,6 +30,7 @@ function App(): ReactNode {
             <SearchForm
               onSubmit={handleSubmit}
               initialValue={searchQueryFromURL}
+              key={searchQueryFromURL}
             />{' '}
           </div>
           <ResultContainer characters={data} />
@@ -40,6 +42,7 @@ function App(): ReactNode {
           />
         </div>
       </div>
+      <SelectionFlyout />
     </ErrorBoundary>
   );
 }

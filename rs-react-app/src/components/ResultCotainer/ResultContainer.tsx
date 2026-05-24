@@ -25,6 +25,7 @@ function ResultContainer({ characters }: ResultContainerProps) {
                 name={card.name}
                 films={card.films}
                 tvShows={card.tvShows}
+                id={card._id}
               />
             </li>
           );
