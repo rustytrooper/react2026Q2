@@ -36,7 +36,6 @@ export function CharacterDetail(): ReactNode {
         setError(true);
         setLoading(false);
       });
-    console.log(character);
   }, [id]);
 
   const handleClose = () => {

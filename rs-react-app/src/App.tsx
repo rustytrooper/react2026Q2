@@ -24,7 +24,7 @@ function App(): ReactNode {
     <Loader />
   ) : (
     <ErrorBoundary>
-      <div className="w-full bg-gray-100">
+      <div className="w-full bg-gray-100 dark:bg-purple-900 transition-all duration-300">
         <div className="container w-[90vw] mx-auto px-4">
           <div className="flex justify-center items-center ">
             <SearchForm

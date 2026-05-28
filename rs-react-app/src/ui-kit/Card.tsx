@@ -15,10 +15,6 @@ function Card({ imageUrl, name, films, tvShows, id }: CardProps) {
   const handleCheckboxClick = (e: React.MouseEvent<HTMLInputElement>) => {
     e.stopPropagation();
     selectCharacter(id);
-    console.log(
-      'After toggle, selected IDs:',
-      Array.from(useDisneyStore.getState().selectedIds)
-    );
   };
   return (
     <div
@@ -38,6 +34,9 @@ function Card({ imageUrl, name, films, tvShows, id }: CardProps) {
         duration-300 
         border 
         border-gray-100
+        dark:bg-purple-800
+        dark:border-purple-700
+      dark:shadow-purple-500
       "
     >
       <input
@@ -52,6 +51,7 @@ function Card({ imageUrl, name, films, tvShows, id }: CardProps) {
           mt-2
           cursor-pointer
           ml-60
+          dark:bg-white
         "
       />
       <div
@@ -83,15 +83,15 @@ function Card({ imageUrl, name, films, tvShows, id }: CardProps) {
       </div>
 
       <div className="p-4 text-center">
-        <p className="font-semibold text-gray-800 text-base sm:text-lg">
+        <p className="font-semibold text-gray-800 text-base sm:text-lg dark:text-white transition-all duration-300">
           {name}
         </p>
 
-        <p className="text-gray-600 text-xs sm:text-sm mt-2 line-clamp-2">
+        <p className="text-gray-600 text-xs sm:text-sm mt-2 line-clamp-2 dark:text-white transition-all duration-300">
           <span className="font-medium">Films:</span> {films.join(', ')}
         </p>
 
-        <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2">
+        <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2 dark:text-white transition-all duration-300">
           <span className="font-medium">TV shows:</span> {tvShows.join(', ')}
         </p>
       </div>

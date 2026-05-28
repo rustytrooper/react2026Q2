@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 
 export function About(): ReactNode {
   return (
-    <div className="flex flex-col min-h-[calc(100vh-200px)]">
+    <div className="flex flex-col h-[100vh]">
       <div className="flex-grow w-2/3 mx-auto">
         <p className="pt-12">
           This is a project, that is developing by Diana Solovey at the RS React
