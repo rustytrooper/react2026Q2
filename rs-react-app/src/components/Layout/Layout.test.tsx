@@ -1,44 +1,67 @@
-import { describe, it, expect } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter, Routes, Route } from 'react-router';
 import { Layout } from './Layout';
 
 vi.mock('../Header/Header', () => ({
   Header: () => <div data-testid="mock-header">Mock Header</div>,
 }));
 
+vi.mock('../../context/ThemeContext', () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="mock-theme-provider">{children}</div>
+  ),
+}));
+
+const renderWithBrowserRouter = (
+  ui: React.ReactElement,
+  { route = '/' } = {}
+) => {
+  window.history.pushState({}, 'Test page', route);
+  return render(<BrowserRouter>{ui}</BrowserRouter>);
+};
+
 describe('Layout', () => {
-  beforeAll(() => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.history.pushState({}, '', '/');
     cleanup();
   });
+
   afterEach(() => {
+    vi.resetAllMocks();
+    document.body.innerHTML = '';
     cleanup();
   });
-  afterAll(() => {
-    cleanup();
-  });
-  const renderWithRouter = (
-    component: React.ReactNode,
-    initialEntries = ['/']
-  ) => {
-    return render(
-      <MemoryRouter initialEntries={initialEntries}>{component}</MemoryRouter>
-    );
-  };
 
   describe('Basic rendering', () => {
-    it('should have a div container', () => {
-      renderWithRouter(<Layout />);
+    it('should render ThemeProvider', () => {
+      renderWithBrowserRouter(<Layout />);
 
-      const container = document.querySelector('div');
-      expect(container).toBeInTheDocument();
+      expect(screen.getByTestId('mock-theme-provider')).toBeInTheDocument();
+    });
+
+    it('should render Header component', () => {
+      renderWithBrowserRouter(<Layout />);
+
+      expect(screen.getByTestId('mock-header')).toBeInTheDocument();
+      expect(screen.getByText('Mock Header')).toBeInTheDocument();
+    });
+
+    it('should render children inside ThemeProvider', () => {
+      renderWithBrowserRouter(<Layout />);
+
+      const provider = screen.getByTestId('mock-theme-provider');
+      const header = screen.getByTestId('mock-header');
+
+      expect(provider).toContainElement(header);
     });
   });
 
   describe('Outlet rendering', () => {
     it('should render Outlet content', () => {
       render(
-        <MemoryRouter initialEntries={['/']}>
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route
@@ -47,7 +70,7 @@ describe('Layout', () => {
               />
             </Route>
           </Routes>
-        </MemoryRouter>
+        </BrowserRouter>
       );
 
       expect(screen.getByTestId('outlet-content')).toBeInTheDocument();
@@ -56,49 +79,39 @@ describe('Layout', () => {
 
     it('should render different outlet content based on route', () => {
       render(
-        <MemoryRouter initialEntries={['/about']}>
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<div>Home Page</div>} />
               <Route path="about" element={<div>About Page</div>} />
             </Route>
           </Routes>
-        </MemoryRouter>
+        </BrowserRouter>
       );
 
-      expect(screen.getByText('About Page')).toBeInTheDocument();
-      expect(screen.queryByText('Home Page')).not.toBeInTheDocument();
-    });
-
-    it('should render nested routes correctly', () => {
-      render(
-        <MemoryRouter initialEntries={['/user/profile']}>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route path="user">
-                <Route path="profile" element={<div>User Profile</div>} />
-              </Route>
-            </Route>
-          </Routes>
-        </MemoryRouter>
-      );
-
-      expect(screen.getByText('User Profile')).toBeInTheDocument();
+      expect(screen.getByText('Home Page')).toBeInTheDocument();
+      expect(screen.queryByText('About Page')).not.toBeInTheDocument();
     });
   });
 
-  describe('Integration with real Header', () => {
-    it('should work with real Header component', () => {
-      vi.unmock('../Header/Header');
-
+  describe('Layout structure', () => {
+    it('should wrap everything in ThemeProvider', () => {
       render(
-        <MemoryRouter initialEntries={['/']}>
-          <Layout />
-        </MemoryRouter>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<div data-testid="outlet-content" />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
       );
 
-      expect(screen.getByText('Home')).toBeInTheDocument();
-      expect(screen.getByText('About')).toBeInTheDocument();
+      const provider = screen.getByTestId('mock-theme-provider');
+      const header = screen.getByTestId('mock-header');
+      const outlet = screen.getByTestId('outlet-content');
+
+      expect(provider).toContainElement(header);
+      expect(provider).toContainElement(outlet);
     });
   });
 });

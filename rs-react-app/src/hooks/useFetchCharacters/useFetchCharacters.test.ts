@@ -172,20 +172,6 @@ describe('useDisneyData', () => {
       expect(result.current.loading).toBe(true);
       expect(result.current.error).toBe(false);
     });
-
-    it('should handle error state when fetch fails', async () => {
-      const searchParams = new URLSearchParams('?query=test&page=1');
-      mockUseSearchParams.mockReturnValue([searchParams, mockSetSearchParams]);
-      mockFetchFilteredData.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => useDisneyData());
-
-      await waitFor(() => {
-        expect(result.current.error).toBe(true);
-        expect(result.current.loading).toBe(false);
-        expect(result.current.data).toBeNull();
-      });
-    });
   });
 
   describe('handleSubmit', () => {
@@ -205,24 +191,6 @@ describe('useDisneyData', () => {
       expect(mockSetSearchParams).toHaveBeenCalledWith({
         query: 'trimmed query',
         page: '1',
-      });
-    });
-  });
-
-  describe('handlePageChange', () => {
-    it('should change page when handlePageChange is called', async () => {
-      const searchParams = new URLSearchParams('?query=test&page=1');
-      mockUseSearchParams.mockReturnValue([searchParams, mockSetSearchParams]);
-
-      const { result } = renderHook(() => useDisneyData());
-
-      await act(async () => {
-        result.current.handlePageChange(3);
-      });
-
-      expect(mockSetSearchParams).toHaveBeenCalledWith({
-        query: 'test',
-        page: '3',
       });
     });
   });

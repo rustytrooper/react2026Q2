@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router';
-import ThemeToggle from '../../ui-kit/ButtonSwitchTheme';
+import ThemeToggleButton from '../../ui-kit/ButtonSwitchTheme';
 
 export function Header(): ReactNode {
   return (
@@ -23,7 +23,7 @@ export function Header(): ReactNode {
         >
           About
         </NavLink>
-        <ThemeToggle />
+        <ThemeToggleButton />
       </nav>
     </header>
   );

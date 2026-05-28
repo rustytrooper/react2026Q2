@@ -2,7 +2,7 @@ import sun from '../assets/sun.png';
 import moon from '../assets/moon.png';
 import { useTheme } from '../context/ThemeContext';
 
-const ThemeToggle = () => {
+const ThemeToggleButton = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -28,4 +28,4 @@ const ThemeToggle = () => {
   );
 };
 
-export default ThemeToggle;
+export default ThemeToggleButton;

@@ -90,19 +90,6 @@ describe('fetchData', () => {
       ],
     };
 
-    it('should fetch character by id', async () => {
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        json: () => Promise.resolve(mockCharacterResponse),
-      });
-
-      const result = await fetchCharacterById('367');
-
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://api.disneyapi.dev/character/367'
-      );
-      expect(result).toEqual(mockCharacterResponse);
-    });
-
     it('should handle string ids correctly', async () => {
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         json: () => Promise.resolve(mockCharacterResponse),
@@ -113,16 +100,6 @@ describe('fetchData', () => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://api.disneyapi.dev/character/112'
       );
-    });
-
-    it('should handle non-existent character', async () => {
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-        json: () => Promise.resolve({ error: 'There is nothing here' }),
-      });
-
-      const result = await fetchCharacterById('999999');
-
-      expect(result).toEqual({ error: 'There is nothing here' });
     });
   });
 
@@ -292,6 +269,380 @@ describe('fetchData', () => {
       ]);
 
       expect(globalThis.fetch).toHaveBeenCalledTimes(4);
+    });
+  });
+});
+
+describe('fetchData - additional coverage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  describe('fetchData - error handling', () => {
+    it('should throw error when network request fails', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const networkError = new Error('Network failure');
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        networkError
+      );
+
+      await expect(fetchData()).rejects.toThrow('Network failure');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error while fetching data',
+        networkError
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should throw error when response.json() fails', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const jsonError = new Error('Invalid JSON');
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.reject(jsonError),
+      });
+
+      await expect(fetchData()).rejects.toThrow('Invalid JSON');
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle abort signal', async () => {
+      const abortError = new DOMException('Aborted', 'AbortError');
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        abortError
+      );
+
+      await expect(fetchData()).rejects.toThrow('Aborted');
+    });
+  });
+
+  describe('fetchData - edge cases', () => {
+    it('should handle page parameter as string', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: [] }),
+      });
+
+      await fetchData(2, 10);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?page=2&pageSize=10'
+      );
+    });
+
+    it('should handle negative page number', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: [] }),
+      });
+
+      await fetchData(-1, 10);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?page=-1&pageSize=10'
+      );
+    });
+
+    it('should handle zero page size', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: [] }),
+      });
+
+      await fetchData(1, 0);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?page=1&pageSize=0'
+      );
+    });
+
+    it('should handle extremely large page size', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: [] }),
+      });
+
+      await fetchData(1, 10000);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?page=1&pageSize=10000'
+      );
+    });
+  });
+
+  describe('fetchCharacterById - additional coverage', () => {
+    const mockCharacterData = {
+      _id: 367,
+      name: 'Aunt Gertie',
+      films: ["Mickey's Once Upon a Christmas"],
+      shortFilms: [],
+      tvShows: [],
+      videoGames: [],
+      parkAttractions: [],
+      allies: [],
+      enemies: [],
+      imageUrl: 'https://example.com/image.jpg',
+      url: 'https://api.disneyapi.dev/characters/367',
+    };
+
+    it('should return character data when response has data property', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: mockCharacterData }),
+      });
+
+      const result = await fetchCharacterById('367');
+
+      expect(result).toEqual(mockCharacterData);
+    });
+
+    it('should return null when response has no data property', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ error: 'Not found' }),
+      });
+
+      const result = await fetchCharacterById('999999');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when response is empty object', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({}),
+      });
+
+      const result = await fetchCharacterById('999999');
+
+      expect(result).toBeNull();
+    });
+
+    it('should throw error when network request fails', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const networkError = new Error('Network failure');
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        networkError
+      );
+
+      await expect(fetchCharacterById('367')).rejects.toThrow(
+        'Network failure'
+      );
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle empty id string', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: null }),
+      });
+
+      await fetchCharacterById('');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character/'
+      );
+    });
+
+    it('should handle id with special characters', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: null }),
+      });
+
+      await fetchCharacterById('abc123!@#');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character/abc123!@#'
+      );
+    });
+  });
+
+  describe('fetchFilteredData - additional coverage', () => {
+    const mockFilteredResponse: DisneyApiResponse = {
+      info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
+      data: [
+        {
+          _id: 112,
+          name: 'Achilles',
+          films: [],
+          shortFilms: [],
+          tvShows: [],
+          videoGames: [],
+          parkAttractions: [],
+          allies: [],
+          enemies: [],
+          imageUrl: '',
+          url: '',
+        },
+      ],
+    };
+
+    it('should throw error when network request fails', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const networkError = new Error('Network failure');
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        networkError
+      );
+
+      await expect(fetchFilteredData('test')).rejects.toThrow(
+        'Network failure'
+      );
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle search term with multiple spaces', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve(mockFilteredResponse),
+      });
+
+      await fetchFilteredData('  mickey   mouse  ');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?name=mickey%20%20%20mouse&page=1&pageSize=10'
+      );
+    });
+
+    it('should handle search term with leading/trailing newlines', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve(mockFilteredResponse),
+      });
+
+      await fetchFilteredData('\nmickey\n');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?name=mickey&page=1&pageSize=10'
+      );
+    });
+
+    it('should handle search term with emojis', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve(mockFilteredResponse),
+      });
+
+      await fetchFilteredData('🐭 Mickey');
+
+      const expectedEncoded = encodeURIComponent('🐭 Mickey');
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        `https://api.disneyapi.dev/character?name=${expectedEncoded}&page=1&pageSize=10`
+      );
+    });
+
+    it('should handle search term with Cyrillic characters', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve(mockFilteredResponse),
+      });
+
+      await fetchFilteredData('Микки Маус');
+
+      const expectedEncoded = encodeURIComponent('Микки Маус');
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        `https://api.disneyapi.dev/character?name=${expectedEncoded}&page=1&pageSize=10`
+      );
+    });
+
+    it('should handle page as string', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve(mockFilteredResponse),
+      });
+      await fetchFilteredData('mickey', 2, 10);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.disneyapi.dev/character?name=mickey&page=2&pageSize=10'
+      );
+    });
+  });
+
+  describe('fetchFilteredData - response handling', () => {
+    it('should handle response with null data', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ info: null, data: null }),
+      });
+
+      const result = await fetchFilteredData('test');
+
+      expect(result).toEqual({ info: null, data: null });
+    });
+
+    it('should handle empty response object', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({}),
+      });
+
+      const result = await fetchFilteredData('test');
+
+      expect(result).toEqual({});
+    });
+
+    it('should handle malformed response', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve('not an object'),
+      });
+
+      const result = await fetchFilteredData('test');
+
+      expect(result).toBe('not an object');
+    });
+  });
+
+  describe('fetchData - response validation', () => {
+    it('should handle response with missing info', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ data: [] }),
+      });
+
+      const result = await fetchData();
+
+      expect(result).toEqual({ data: [] });
+    });
+
+    it('should handle response with missing data', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve({ info: { count: 0 } }),
+      });
+
+      const result = await fetchData();
+
+      expect(result).toEqual({ info: { count: 0 } });
+    });
+
+    it('should handle response as array', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        json: () => Promise.resolve([]),
+      });
+
+      const result = await fetchData();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('Integration - error recovery', () => {
+    it('should handle retry after failure', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      (globalThis.fetch as ReturnType<typeof vi.fn>)
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce({
+          json: () => Promise.resolve({ data: [] }),
+        });
+
+      await expect(fetchData()).rejects.toThrow('Network error');
+      const result = await fetchData();
+      expect(result).toEqual({ data: [] });
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

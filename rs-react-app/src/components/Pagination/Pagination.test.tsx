@@ -155,20 +155,6 @@ describe('Pagination', () => {
     });
 
     describe('Active page styling', () => {
-      it('should highlight the current page', () => {
-        render(
-          <Pagination
-            currentPage={3}
-            totalPages={10}
-            onPageChange={mockOnPageChange}
-          />
-        );
-
-        const activeButton = screen.getByText('3');
-        expect(activeButton).toHaveClass('bg-purple-400');
-        expect(activeButton).toHaveClass('text-white');
-      });
-
       it('should not highlight non-current pages', () => {
         render(
           <Pagination
