@@ -1,35 +1,27 @@
-import { useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
+import useDisneyStore from '../../store/useDownloadData';
+import { useCallback, useEffect } from 'react';
 import {
   initializeSearchValue,
   saveSearchValue,
   trimValue,
 } from '../../helpers/localStorage';
-import useDisneyStore from '../../store/useDownloadData';
+import { charactersApi } from '../../helpers/charactersApi';
 
 const itemsPerPage = 10;
-
 export function useDisneyData() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const searchQueryFromURL = searchParams.get('query') || '';
-
-  const data = useDisneyStore((state) => state.data);
-  const loading = useDisneyStore((state) => state.loading);
-  const error = useDisneyStore((state) => state.error);
-  const totalPages = useDisneyStore((state) => state.totalPages);
-  const loadData = useDisneyStore((state) => state.loadData);
 
   const clearSelection = useDisneyStore((state) => state.clearSelection);
   const getSelectedCount = useDisneyStore((state) => state.getSelectedCount);
   const getSelectedCharacters = useDisneyStore(
     (state) => state.getSelectedCharacters
   );
-
-  useEffect(() => {
-    loadData(searchQueryFromURL, currentPage, itemsPerPage);
-  }, [searchQueryFromURL, currentPage, loadData]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -40,50 +32,116 @@ export function useDisneyData() {
         }
       }
     };
-
     initialize();
   }, [searchQueryFromURL, setSearchParams]);
 
-  const handleSubmit = useCallback(
-    (term: string) => {
-      if (!term) {
-        setSearchParams((prev) => {
-          prev.delete('query');
-          prev.delete('page');
-          return prev;
+  const {
+    data,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      'characters',
+      {
+        query: searchQueryFromURL,
+        page: currentPage,
+        pageSize: itemsPerPage,
+      },
+    ],
+    queryFn: () =>
+      charactersApi.getCharacters({
+        query: searchQueryFromURL,
+        page: currentPage,
+        pageSize: itemsPerPage,
+      }),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
+    enabled: true,
+  });
+
+  const prefetchSearch = useCallback(
+    (searchTerm: string) => {
+      if (searchTerm && searchTerm !== searchQueryFromURL) {
+        queryClient.prefetchQuery({
+          queryKey: [
+            'characters',
+            {
+              query: searchTerm,
+              page: 1,
+              pageSize: itemsPerPage,
+            },
+          ],
+          queryFn: () =>
+            charactersApi.getCharacters({
+              query: searchTerm,
+              page: 1,
+              pageSize: itemsPerPage,
+            }),
         });
-      } else {
-        const trimmed = trimValue(term);
-        saveSearchValue(trimmed);
-        setSearchParams({ query: trimmed, page: '1' });
       }
     },
-    [setSearchParams]
+    [queryClient, searchQueryFromURL]
+  );
+
+  const handleSubmit = useCallback(
+    (term: string) => {
+      const trimmed = term ? trimValue(term) : '';
+      if (trimmed) {
+        saveSearchValue(trimmed);
+        prefetchSearch(trimmed);
+      }
+      setSearchParams((prev) => {
+        if (!trimmed) {
+          prev.delete('query');
+        } else {
+          prev.set('query', trimmed);
+        }
+        prev.set('page', '1');
+        return prev;
+      });
+    },
+    [setSearchParams, prefetchSearch]
   );
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      const params = new URLSearchParams(searchParams);
-      if (searchQueryFromURL) {
-        params.set('query', searchQueryFromURL);
-      }
-      params.set('page', newPage.toString());
-      setSearchParams(params);
+      setSearchParams((prev) => {
+        if (searchQueryFromURL) {
+          prev.set('query', searchQueryFromURL);
+        }
+        prev.set('page', newPage.toString());
+        return prev;
+      });
     },
-    [setSearchParams, searchQueryFromURL, searchParams]
+    [setSearchParams, searchQueryFromURL]
   );
+
+  const handleManualRefresh = () => {
+    queryClient.invalidateQueries({
+      queryKey: [
+        'characters',
+        {
+          query: searchQueryFromURL,
+          page: currentPage,
+          pageSize: itemsPerPage,
+        },
+      ],
+    });
+    refetch();
+  };
 
   return {
     data,
     loading,
-    error,
+    error: error?.message || null,
     currentPage,
-    totalPages,
+    totalPages: data?.totalPages || 0,
     searchQueryFromURL,
-
     handleSubmit,
     handlePageChange,
-
+    handleManualRefresh,
+    refetch,
     clearSelection,
     getSelectedCount,
     getSelectedCharacters,

@@ -1,66 +1,25 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router';
-import { fetchCharacterById } from '../../helpers/fetchData';
+import { useNavigate, useParams } from 'react-router';
 import './characterDetail.css';
-import type { Character } from '../../types/charachterType';
+import { useCharacterDetail } from '../../hooks/useFetchCharacters/useCharactersDetail';
 
-export function CharacterDetail(): ReactNode {
+export function CharacterDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [character, setCharacter] = useState<Character | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { data: character, isLoading, error, refetch } = useCharacterDetail(id);
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+  const handleClose = () => navigate('/' + location.search);
 
-    setLoading(true);
-    setError(false);
+  const handleRefresh = () => refetch();
 
-    fetchCharacterById(id)
-      .then((response: Character | null) => {
-        if (response && response) {
-          const characterData = response;
-          setCharacter(characterData);
-        } else {
-          setCharacter(null);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError(true);
-        setLoading(false);
-      });
-  }, [id]);
-
-  const handleClose = () => {
-    navigate('/' + location.search);
-  };
-
-  if (loading) {
+  if (isLoading) return <div className="detail-overlay">Loading...</div>;
+  if (error)
     return (
-      <div className="character-detail-overlay">
-        <div className="character-detail-content">Loading...</div>
+      <div className="detail-overlay">
+        <p>Error: {error.message}</p>
+        <button onClick={handleRefresh}>Try Again</button>
       </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="character-detail-overlay">
-        <div className="character-detail-content">Error loading character</div>
-      </div>
-    );
-  }
-
-  if (!character) {
-    return null;
-  }
+  if (!character) return null;
 
   return (
     <div className="character-detail-overlay">
@@ -68,6 +27,7 @@ export function CharacterDetail(): ReactNode {
         <button className="close-button" onClick={handleClose}>
           ✕
         </button>
+        <button onClick={handleRefresh}>🔄 Refresh</button>
         <p className="text-xl">{character.name || 'CHARACTER!'}</p>
         {character.imageUrl && (
           <img
