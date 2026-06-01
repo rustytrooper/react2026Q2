@@ -24,8 +24,7 @@ export const charactersApi = {
 
     return {
       data: data.data,
-      totalPages: Math.ceil(data.total / pageSize),
-      total: data.total,
+      info: data.info,
     };
   },
   getCharacterById: async (id: string) => {

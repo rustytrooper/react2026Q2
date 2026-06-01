@@ -8,6 +8,7 @@ import {
   trimValue,
 } from '../../helpers/localStorage';
 import { charactersApi } from '../../helpers/charactersApi';
+import { cashTTL } from '../../main';
 
 const itemsPerPage = 10;
 export function useDisneyData() {
@@ -55,41 +56,16 @@ export function useDisneyData() {
         page: currentPage,
         pageSize: itemsPerPage,
       }),
-    staleTime: 1000 * 60 * 5,
+    staleTime: cashTTL,
     placeholderData: (previousData) => previousData,
     enabled: true,
   });
-
-  const prefetchSearch = useCallback(
-    (searchTerm: string) => {
-      if (searchTerm && searchTerm !== searchQueryFromURL) {
-        queryClient.prefetchQuery({
-          queryKey: [
-            'characters',
-            {
-              query: searchTerm,
-              page: 1,
-              pageSize: itemsPerPage,
-            },
-          ],
-          queryFn: () =>
-            charactersApi.getCharacters({
-              query: searchTerm,
-              page: 1,
-              pageSize: itemsPerPage,
-            }),
-        });
-      }
-    },
-    [queryClient, searchQueryFromURL]
-  );
 
   const handleSubmit = useCallback(
     (term: string) => {
       const trimmed = term ? trimValue(term) : '';
       if (trimmed) {
         saveSearchValue(trimmed);
-        prefetchSearch(trimmed);
       }
       setSearchParams((prev) => {
         if (!trimmed) {
@@ -101,7 +77,7 @@ export function useDisneyData() {
         return prev;
       });
     },
-    [setSearchParams, prefetchSearch]
+    [setSearchParams]
   );
 
   const handlePageChange = useCallback(
@@ -128,7 +104,6 @@ export function useDisneyData() {
         },
       ],
     });
-    refetch();
   };
 
   return {
@@ -136,7 +111,7 @@ export function useDisneyData() {
     loading,
     error: error?.message || null,
     currentPage,
-    totalPages: data?.totalPages || 0,
+    totalPages: data?.info.totalPages || 0,
     searchQueryFromURL,
     handleSubmit,
     handlePageChange,
