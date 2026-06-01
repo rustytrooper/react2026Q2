@@ -21,7 +21,7 @@ function App(): ReactNode {
   } = useDisneyData();
 
   return loading ? (
-    <Loader />
+    <Loader data-testId="loader" />
   ) : (
     <ErrorBoundary>
       <div className="w-full bg-gray-100 dark:bg-purple-900 transition-all duration-300">

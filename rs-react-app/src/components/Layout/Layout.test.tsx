@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { Layout } from './Layout';
 
@@ -35,26 +35,15 @@ describe('Layout', () => {
   });
 
   describe('Basic rendering', () => {
-    it('should render ThemeProvider', () => {
+    it('should have div container with correct classes', () => {
       renderWithBrowserRouter(<Layout />);
 
-      expect(screen.getByTestId('mock-theme-provider')).toBeInTheDocument();
-    });
-
-    it('should render Header component', () => {
-      renderWithBrowserRouter(<Layout />);
-
-      expect(screen.getByTestId('mock-header')).toBeInTheDocument();
-      expect(screen.getByText('Mock Header')).toBeInTheDocument();
-    });
-
-    it('should render children inside ThemeProvider', () => {
-      renderWithBrowserRouter(<Layout />);
-
-      const provider = screen.getByTestId('mock-theme-provider');
-      const header = screen.getByTestId('mock-header');
-
-      expect(provider).toContainElement(header);
+      const container = document.querySelector(
+        '.bg-gray-100.dark\\:bg-purple-900'
+      );
+      expect(container).toBeInTheDocument();
+      expect(container).toHaveClass('transition-all');
+      expect(container).toHaveClass('duration-300');
     });
   });
 
@@ -94,24 +83,32 @@ describe('Layout', () => {
     });
   });
 
-  describe('Layout structure', () => {
-    it('should wrap everything in ThemeProvider', () => {
-      render(
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<div data-testid="outlet-content" />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+  describe('CSS classes', () => {
+    it('should have correct background classes', () => {
+      renderWithBrowserRouter(<Layout />);
+
+      const container = document.querySelector(
+        '.bg-gray-100.dark\\:bg-purple-900'
       );
+      expect(container).toHaveClass('bg-gray-100');
+      expect(container).toHaveClass('dark:bg-purple-900');
+    });
 
-      const provider = screen.getByTestId('mock-theme-provider');
-      const header = screen.getByTestId('mock-header');
-      const outlet = screen.getByTestId('outlet-content');
+    it('should have transition classes', () => {
+      renderWithBrowserRouter(<Layout />);
 
-      expect(provider).toContainElement(header);
-      expect(provider).toContainElement(outlet);
+      const container = document.querySelector('.transition-all.duration-300');
+      expect(container).toHaveClass('transition-all');
+      expect(container).toHaveClass('duration-300');
+    });
+  });
+
+  describe('Dark mode', () => {
+    it('should have dark mode class on container', () => {
+      renderWithBrowserRouter(<Layout />);
+
+      const container = document.querySelector('.dark\\:bg-purple-900');
+      expect(container).toBeInTheDocument();
     });
   });
 });

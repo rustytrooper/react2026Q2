@@ -8,7 +8,7 @@ import {
   trimValue,
 } from '../../helpers/localStorage';
 import { charactersApi } from '../../helpers/charactersApi';
-import { cashTTL } from '../../main';
+import { cashTTL } from '../../constants';
 
 const itemsPerPage = 10;
 export function useDisneyData() {

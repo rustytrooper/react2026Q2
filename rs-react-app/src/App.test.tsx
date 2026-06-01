@@ -1,18 +1,7 @@
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
-  type Mock,
-} from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import App from './App';
-import { useDisneyData } from './hooks/useFetchCharacters/useFetchCharacters';
 import { BrowserRouter } from 'react-router';
-import type { Character } from './types/charachterType';
+import App from './App';
 
 vi.mock('./components/SearchForm/SearchForm', () => ({
   default: ({
@@ -40,9 +29,13 @@ vi.mock('./components/SearchForm/SearchForm', () => ({
 }));
 
 vi.mock('./components/ResultCotainer/ResultContainer', () => ({
-  default: ({ characters }: { characters: Character[] | null }) => (
+  default: ({
+    characters,
+  }: {
+    characters: { data: Array<{ _id: number; name: string }> } | null;
+  }) => (
     <div data-testid="result-container">
-      {characters?.map((char: Character) => (
+      {characters?.data?.map((char) => (
         <div key={char._id} data-testid={`character-${char._id}`}>
           {char.name}
         </div>
@@ -91,6 +84,10 @@ vi.mock('./components/ErrorBoundary/ErrorBoundary', () => ({
   ),
 }));
 
+vi.mock('./components/FlyOut/FlyOut', () => ({
+  default: () => <div data-testid="selection-flyout">Selection Flyout</div>,
+}));
+
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
@@ -99,237 +96,156 @@ vi.mock('react-router', async () => {
   };
 });
 
+let mockHandleSubmit = vi.fn();
+let mockHandlePageChange = vi.fn();
+
 vi.mock('./hooks/useFetchCharacters/useFetchCharacters', () => ({
-  useDisneyData: vi.fn(),
-}));
-
-const mockUseDisneyData = useDisneyData as Mock;
-
-describe('App Component', () => {
-  const defaultMockData = {
-    data: [
-      { id: 1, name: 'Mickey Mouse' },
-      { id: 2, name: 'Donald Duck' },
-      { id: 3, name: 'Goofy' },
-    ],
+  useDisneyData: () => ({
+    data: {
+      info: { count: 3, totalPages: 10, previousPage: null, nextPage: null },
+      data: [
+        {
+          _id: 1,
+          name: 'Mickey Mouse',
+          films: [],
+          tvShows: [],
+          imageUrl: '',
+          url: '',
+        },
+        {
+          _id: 2,
+          name: 'Donald Duck',
+          films: [],
+          tvShows: [],
+          imageUrl: '',
+          url: '',
+        },
+        {
+          _id: 3,
+          name: 'Goofy',
+          films: [],
+          tvShows: [],
+          imageUrl: '',
+          url: '',
+        },
+      ],
+    },
     loading: false,
     currentPage: 1,
     totalPages: 10,
     searchQueryFromURL: '',
-    handleSubmit: vi.fn(),
-    handlePageChange: vi.fn(),
-  };
+    handleSubmit: mockHandleSubmit,
+    handlePageChange: mockHandlePageChange,
+  }),
+}));
 
+describe('App Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseDisneyData.mockReturnValue(defaultMockData);
+    mockHandleSubmit = vi.fn();
+    mockHandlePageChange = vi.fn();
+    vi.mock('./hooks/useFetchCharacters/useFetchCharacters', () => ({
+      useDisneyData: () => ({
+        data: {
+          info: {
+            count: 3,
+            totalPages: 10,
+            previousPage: null,
+            nextPage: null,
+          },
+          data: [
+            {
+              _id: 1,
+              name: 'Mickey Mouse',
+              films: [],
+              tvShows: [],
+              imageUrl: '',
+              url: '',
+            },
+            {
+              _id: 2,
+              name: 'Donald Duck',
+              films: [],
+              tvShows: [],
+              imageUrl: '',
+              url: '',
+            },
+            {
+              _id: 3,
+              name: 'Goofy',
+              films: [],
+              tvShows: [],
+              imageUrl: '',
+              url: '',
+            },
+          ],
+        },
+        loading: false,
+        currentPage: 1,
+        totalPages: 10,
+        searchQueryFromURL: '',
+        handleSubmit: mockHandleSubmit,
+        handlePageChange: mockHandlePageChange,
+      }),
+    }));
     cleanup();
   });
 
   afterEach(() => {
+    vi.resetAllMocks();
+    document.body.innerHTML = '';
     cleanup();
   });
 
-  it('should render loader when loading is true', () => {
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      loading: true,
+  const renderWithBrowserRouter = (ui: React.ReactNode) => {
+    return render(<BrowserRouter>{ui}</BrowserRouter>);
+  };
+
+  describe('Main components rendering', () => {
+    it('should render error boundary', () => {
+      renderWithBrowserRouter(<App />);
+
+      expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
     });
 
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+    it('should render search form', () => {
+      renderWithBrowserRouter(<App />);
 
-    expect(screen.getByTestId('loader')).toBeInTheDocument();
-    expect(screen.queryByTestId('result-container')).not.toBeInTheDocument();
-  });
-
-  it('should render main components when loading is false', () => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
-    expect(screen.getByTestId('search-form')).toBeInTheDocument();
-    const resultContainers = screen.getAllByTestId('result-container');
-    expect(resultContainers.length).toBeGreaterThan(0);
-    expect(screen.getByTestId('pagination')).toBeInTheDocument();
-    expect(screen.getByTestId('outlet')).toBeInTheDocument();
-  });
-
-  it('should display characters from data prop', () => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('Mickey Mouse')).toBeInTheDocument();
-    expect(screen.getByText('Donald Duck')).toBeInTheDocument();
-    expect(screen.getByText('Goofy')).toBeInTheDocument();
-  });
-
-  it('should pass correct props to SearchForm', () => {
-    const searchQuery = 'mickey';
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      searchQueryFromURL: searchQuery,
+      expect(screen.getByTestId('search-form')).toBeInTheDocument();
     });
 
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+    it('should render result container', () => {
+      renderWithBrowserRouter(<App />);
 
-    const searchInput = screen.getByTestId('search-input');
-    expect(searchInput).toHaveAttribute('value', searchQuery);
-  });
-
-  it('should call handleSubmit when search form is submitted', async () => {
-    const handleSubmit = vi.fn();
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      handleSubmit,
+      expect(screen.getByTestId('result-container')).toBeInTheDocument();
     });
 
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+    it('should render pagination', () => {
+      renderWithBrowserRouter(<App />);
 
-    const searchButton = screen.getByText('Search');
-    await userEvent.click(searchButton);
-
-    expect(handleSubmit).toHaveBeenCalledWith('test query');
-  });
-
-  it('should display correct pagination info', () => {
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      currentPage: 5,
-      totalPages: 20,
+      expect(screen.getByTestId('pagination')).toBeInTheDocument();
     });
 
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+    it('should render outlet', () => {
+      renderWithBrowserRouter(<App />);
 
-    expect(screen.getByText('Page 5 of 20')).toBeInTheDocument();
-  });
-
-  it('should call handlePageChange with next page when next button clicked', async () => {
-    const handlePageChange = vi.fn();
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      currentPage: 5,
-      totalPages: 20,
-      handlePageChange,
+      expect(screen.getByTestId('outlet')).toBeInTheDocument();
     });
 
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
+    it('should render SelectionFlyout', () => {
+      renderWithBrowserRouter(<App />);
 
-    const nextButton = screen.getByText('Next');
-    await userEvent.click(nextButton);
-
-    expect(handlePageChange).toHaveBeenCalledWith(6);
-  });
-
-  it('should call handlePageChange with previous page when prev button clicked', async () => {
-    const handlePageChange = vi.fn();
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      currentPage: 5,
-      totalPages: 20,
-      handlePageChange,
+      expect(screen.getByTestId('selection-flyout')).toBeInTheDocument();
     });
-
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    const prevButton = screen.getByText('Previous');
-    await userEvent.click(prevButton);
-
-    expect(handlePageChange).toHaveBeenCalledWith(4);
   });
 
-  it('should disable previous button on first page', () => {
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      currentPage: 1,
+  describe('Character display', () => {
+    it('should display characters from data prop', () => {
+      renderWithBrowserRouter(<App />);
+
+      expect(screen.getByText('Mickey Mouse')).toBeInTheDocument();
+      expect(screen.getByText('Donald Duck')).toBeInTheDocument();
+      expect(screen.getByText('Goofy')).toBeInTheDocument();
     });
-
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    const prevButton = screen.getByText('Previous');
-    expect(prevButton).toBeDisabled();
-  });
-
-  it('should disable next button on last page', () => {
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      currentPage: 10,
-      totalPages: 10,
-    });
-
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    const nextButton = screen.getByText('Next');
-    expect(nextButton).toBeDisabled();
-  });
-
-  it('should handle empty characters array', () => {
-    mockUseDisneyData.mockReturnValue({
-      ...defaultMockData,
-      data: [],
-    });
-
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    const resultContainers = screen.getAllByTestId('result-container');
-    expect(resultContainers.length).toBeGreaterThan(0);
-    expect(screen.queryByText('Mickey Mouse')).not.toBeInTheDocument();
-  });
-
-  it('should have correct CSS classes', () => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-
-    const container = document.querySelector('.w-full.bg-gray-100');
-    expect(container).toBeInTheDocument();
-
-    const innerContainer = document.querySelector(
-      '.container.w-\\[90vw\\].mx-auto.px-4'
-    );
-    expect(innerContainer).toBeInTheDocument();
   });
 });

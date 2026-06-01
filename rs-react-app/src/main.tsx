@@ -4,8 +4,7 @@ import './index.css';
 import { RouterProvider } from 'react-router';
 import { Router } from './router/Router.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-export const cashTTL = Number(import.meta.env.VITE_CACHE_TTL) || 1000 * 60 * 5;
+import { cashTTL } from './constants.ts';
 
 const queryClient = new QueryClient({
   defaultOptions: {
