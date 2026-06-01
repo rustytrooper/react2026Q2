@@ -9,6 +9,7 @@ import {
 } from '../../helpers/localStorage';
 import { charactersApi } from '../../helpers/charactersApi';
 import { cashTTL } from '../../constants';
+import { getErrorMessage } from '../../helpers/errorHandler';
 
 const itemsPerPage = 10;
 export function useDisneyData() {
@@ -61,6 +62,12 @@ export function useDisneyData() {
     enabled: true,
   });
 
+  useEffect(() => {
+    if (error) {
+      console.error('API Error in useDisneyData:', error);
+    }
+  }, [error, searchQueryFromURL, currentPage]);
+
   const handleSubmit = useCallback(
     (term: string) => {
       const trimmed = term ? trimValue(term) : '';
@@ -109,7 +116,7 @@ export function useDisneyData() {
   return {
     data,
     loading,
-    error: error?.message || null,
+    error: error ? getErrorMessage(error) : null,
     currentPage,
     totalPages: data?.info.totalPages || 0,
     searchQueryFromURL,

@@ -12,6 +12,10 @@ const queryClient = new QueryClient({
       staleTime: cashTTL,
       gcTime: cashTTL * 2,
       retry: 1,
+      throwOnError: (error) => {
+        console.error('Global error handler:', error);
+        return false;
+      },
     },
   },
 });
