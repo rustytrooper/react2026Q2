@@ -1,121 +1,133 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from './assets/vite.svg';
-import heroImg from './assets/hero.png';
 import './App.css';
 
+// function App() {
+
+
+//   return (
+//     <>
+//     </>
+//   );
+// }
+
+// export default App;
+// App.tsx
+import { useState } from 'react';
+import { Modal } from './components/Modal/Modal';
+import { ReactHookForm } from './components/Forms/ReactHookForm';
+import { UncontrolledForm } from './components/Forms/UncontrolledForm';
+import { SubmissionsList } from './components/SubmissionList/SubmissionsList';
+// import { SubmissionsList } from './components/SubmissionsList';
+
+// Тип для выбранной формы
+type FormType = 'uncontrolled' | 'rhf' | null;
+
 function App() {
-  const [count, setCount] = useState(0);
+  // Состояние для модалки
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Какая форма сейчас активна
+  const [activeForm, setActiveForm] = useState<FormType>(null);
+
+  // Состояние для визуального фидбека (не обязательно, можно в SubmissionsList)
+  const [lastSubmissionId, setLastSubmissionId] = useState<string | null>(null);
+
+  // Функция открытия модалки с определенной формой
+  const openModal = (formType: 'uncontrolled' | 'rhf') => {
+    setActiveForm(formType);
+    setIsModalOpen(true);
+  };
+
+  // Функция закрытия модалки
+  const closeModal = () => {
+    setIsModalOpen(false);
+    // Сбрасываем активную форму после закрытия (опционально)
+    // setActiveForm(null);
+  };
+
+  // Обработчик успешной отправки формы
+  const handleFormSuccess = (submissionId?: string) => {
+    closeModal(); // Закрываем модалку
+
+    // Если передан ID, сохраняем для подсветки
+    if (submissionId) {
+      setLastSubmissionId(submissionId);
+      // Через 3 секунды убираем подсветку
+      setTimeout(() => setLastSubmissionId(null), 3000);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div className="app" style={{ 
+      maxWidth: '1200px', 
+      margin: '0 auto', 
+      padding: '20px' 
+    }}>
+      {/* Заголовок */}
+      <h1>📝 React Forms Task</h1>
+
+      {/* Блок с кнопками открытия форм */}
+      <div className="forms-buttons" style={{ 
+        display: 'flex', 
+        gap: '16px', 
+        marginBottom: '32px' 
+      }}>
+        <button 
+          onClick={() => openModal('uncontrolled')}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
         >
-          Count is {count}
+          📝 Open Uncontrolled Form
         </button>
-      </section>
 
-      <div className="ticks"></div>
+        <button 
+          onClick={() => openModal('rhf')}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          ⚛️ Open React Hook Form
+        </button>
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {/* Секция с историей сабмитов */}
+      <div className="submissions-section">
+        <h2>📋 Form Submissions History</h2>
+        <SubmissionsList  highlightId={lastSubmissionId} />
+      </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      {/* Модалка с порталом */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={closeModal}
+      >
+        {/* Условный рендеринг формы в зависимости от activeForm */}
+        {activeForm === 'uncontrolled' && (
+          <UncontrolledForm 
+            onSuccess={() => handleFormSuccess()}
+            onCancel={closeModal}
+          />
+        )}
+
+        {activeForm === 'rhf' && (
+          <ReactHookForm 
+            onSuccess={() => handleFormSuccess()}
+            onCancel={closeModal}
+          />
+        )}
+      </Modal>
+    </div>
   );
 }
 

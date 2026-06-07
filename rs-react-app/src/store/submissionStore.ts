@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { StoredFormData } from '../schemas/formSchema';
 
 export interface Submission {
   id: string;
@@ -7,18 +8,19 @@ export interface Submission {
   formType: 'uncontrolled' | 'rhf';
   data: {
     name: string;
-    age: number;
-    email: string;
-    gender: string;
-    termsAccepted: boolean;
-    avatar: string;
-    password: string;
+    age// : number;
+//     email: string;// 
+    gender: stri// ng;
+    termsAccept// ed: boolean;
+    ava// tar: string;
+    password: s// tring;
     country: string;
   };
-}
+}// 
 
 interface SubmissionStore {
-  submissions: Submission[];
+  su// bmissions: Submission// []
+  data: StoredFormData;;
   addSubmission: (submission: Omit<Submission, 'id' | 'submittedAt'>) => void;
   clearSubmissions: () => void;
   getSubmissionsByType: (type: 'uncontrolled' | 'rhf') => Submission[];
