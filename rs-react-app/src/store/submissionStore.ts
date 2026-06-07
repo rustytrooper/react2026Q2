@@ -8,19 +8,19 @@ export interface Submission {
   formType: 'uncontrolled' | 'rhf';
   data: {
     name: string;
-    age// : number;
-//     email: string;// 
-    gender: stri// ng;
-    termsAccept// ed: boolean;
-    ava// tar: string;
-    password: s// tring;
+    age: number;
+    email: string;
+    gender: string;
+    termsAccepted: boolean;
+    avatar: string;
+    password: string;
     country: string;
   };
-}// 
+}
 
 interface SubmissionStore {
-  su// bmissions: Submission// []
-  data: StoredFormData;;
+  submissions: Submission[];
+  data: StoredFormData;
   addSubmission: (submission: Omit<Submission, 'id' | 'submittedAt'>) => void;
   clearSubmissions: () => void;
   getSubmissionsByType: (type: 'uncontrolled' | 'rhf') => Submission[];
@@ -30,6 +30,7 @@ export const useSubmissionStore = create<SubmissionStore>()(
   persist(
     (set, get) => ({
       submissions: [],
+      data: {} as StoredFormData,
       addSubmission: (submissionData) => {
         const newSubmission: Submission = {
           ...submissionData,
