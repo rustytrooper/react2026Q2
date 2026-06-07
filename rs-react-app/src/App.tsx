@@ -1,132 +1,86 @@
-// import './App.css';
-
-// function App() {
-
-
-//   return (
-//     <>
-//     </>
-//   );
-// }
-
-// export default App;
-// App.tsx
 import { useState } from 'react';
 import { Modal } from './components/Modal/Modal';
 import { ReactHookForm } from './components/Forms/ReactHookForm';
 import { UncontrolledForm } from './components/Forms/UncontrolledForm';
 import { SubmissionsList } from './components/SubmissionList/SubmissionsList';
-// import { SubmissionsList } from './components/SubmissionsList';
 
-// Тип для выбранной формы
 type FormType = 'uncontrolled' | 'rhf' | null;
 
 function App() {
-  // Состояние для модалки
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Какая форма сейчас активна
   const [activeForm, setActiveForm] = useState<FormType>(null);
+  const [lastSubmissionId] = useState<string | null>(null);
 
-  // Состояние для визуального фидбека (не обязательно, можно в SubmissionsList)
-  const [lastSubmissionId, setLastSubmissionId] = useState<string | null>(null);
-
-  // Функция открытия модалки с определенной формой
   const openModal = (formType: 'uncontrolled' | 'rhf') => {
     setActiveForm(formType);
     setIsModalOpen(true);
   };
 
-  // Функция закрытия модалки
   const closeModal = () => {
     setIsModalOpen(false);
-    // Сбрасываем активную форму после закрытия (опционально)
-    // setActiveForm(null);
   };
 
-  // Обработчик успешной отправки формы
-  const handleFormSuccess = (submissionId?: string) => {
-    closeModal(); // Закрываем модалку
-
-    // Если передан ID, сохраняем для подсветки
-    if (submissionId) {
-      setLastSubmissionId(submissionId);
-      // Через 3 секунды убираем подсветку
-      setTimeout(() => setLastSubmissionId(null), 3000);
-    }
+  const handleFormSuccess = () => {
+    closeModal();
   };
 
   return (
-    <div className="app" style={{ 
-      maxWidth: '1200px', 
-      margin: '0 auto', 
-      padding: '20px' 
-    }}>
-      {/* Заголовок */}
-      <h1>📝 React Forms Task</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <p className="text-3xl font-bold text-gray-500 mb-2">
+            📝 React Forms Task
+          </p>
+          <p className="text-gray-600">
+            Choose a form type to submit your information
+          </p>
+        </div>
 
-      {/* Блок с кнопками открытия форм */}
-      <div className="forms-buttons" style={{ 
-        display: 'flex', 
-        gap: '16px', 
-        marginBottom: '32px' 
-      }}>
-        <button 
-          onClick={() => openModal('uncontrolled')}
-          style={{
-            padding: '10px 20px',
-            fontSize: '16px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+        <div className="flex gap-4 justify-center  mb-12">
+          <button
+            onClick={() => openModal('uncontrolled')}
+            className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md cursor-pointer"
+          >
+            📝 Open Uncontrolled Form
+          </button>
+          <button
+            onClick={() => openModal('rhf')}
+            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md cursor-pointer"
+          >
+            ⚛️ Open React Hook Form
+          </button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <p className="text-2xl font-bold text-gray-500 mb-4">
+            📋 Form Submissions History
+          </p>
+          <SubmissionsList highlightId={lastSubmissionId} />
+        </div>
+
+        <Modal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          title={
+            activeForm === 'uncontrolled'
+              ? 'Uncontrolled Form'
+              : 'React Hook Form'
+          }
         >
-          📝 Open Uncontrolled Form
-        </button>
-
-        <button 
-          onClick={() => openModal('rhf')}
-          style={{
-            padding: '10px 20px',
-            fontSize: '16px',
-            backgroundColor: '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          ⚛️ Open React Hook Form
-        </button>
+          {activeForm === 'uncontrolled' && (
+            <UncontrolledForm
+              onSuccess={handleFormSuccess}
+              onCancel={closeModal}
+            />
+          )}
+          {activeForm === 'rhf' && (
+            <ReactHookForm
+              onSuccess={handleFormSuccess}
+              onCancel={closeModal}
+            />
+          )}
+        </Modal>
       </div>
-
-      {/* Секция с историей сабмитов */}
-      <div className="submissions-section">
-        <h2>📋 Form Submissions History</h2>
-        <SubmissionsList  highlightId={lastSubmissionId} />
-      </div>
-
-      {/* Модалка с порталом */}
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={closeModal}
-      >
-        {/* Условный рендеринг формы в зависимости от activeForm */}
-        {activeForm === 'uncontrolled' && (
-          <UncontrolledForm 
-            onSuccess={() => handleFormSuccess()}
-            onCancel={closeModal}
-          />
-        )}
-
-        {activeForm === 'rhf' && (
-          <ReactHookForm 
-            onSuccess={() => handleFormSuccess()}
-            onCancel={closeModal}
-          />
-        )}
-      </Modal>
     </div>
   );
 }

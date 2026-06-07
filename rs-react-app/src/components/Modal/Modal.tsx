@@ -1,15 +1,20 @@
-import React, { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
+  title?: string;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  children,
+  title = 'Form Modal',
+}: ModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
-
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -20,23 +25,25 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
         onClose();
       }
     };
-    document.addEventListener('keydown', handleEscape);
 
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
+
     previousFocusRef.current = document.activeElement as HTMLElement;
 
     if (modalRef.current) {
-      const focusableElements = getFocusableElements(modalRef.current);
+      const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
       if (focusableElements.length > 0) {
         focusableElements[0].focus();
       }
     }
+
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -46,69 +53,48 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
     };
   }, [isOpen]);
 
-  const getFocusableElements = (container: HTMLElement): HTMLElement[] => {
-    const focusableSelectors = ['button', '[href]', 'input:not([disabled])'];
-
-    const elements = container.querySelectorAll<HTMLElement>(
-      focusableSelectors.join(',')
-    );
-
-    return Array.from(elements).filter((element) => {
-      const isVisible = element.offsetParent !== null;
-      const hasNoHiddenAttribute = !element.hasAttribute('hidden');
-      const isNotAriaHidden = element.getAttribute('aria-hidden') !== 'true';
-
-      return isVisible && hasNoHiddenAttribute && isNotAriaHidden;
-    });
-  };
-
-  const handleTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'Tab') return;
-
-    const focusableElements = getFocusableElements(modalRef.current!);
-    if (focusableElements.length === 0) return;
-
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    if (event.shiftKey && document.activeElement === firstElement) {
-      lastElement.focus();
-      event.preventDefault();
-    } else if (!event.shiftKey && document.activeElement === lastElement) {
-      firstElement.focus();
-      event.preventDefault();
-    }
-  };
-  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
   if (!isOpen) return null;
+
   const modalRoot = document.getElementById('modal-root');
-  if (!modalRoot) {
-    console.error('Modal root element not found!');
-    return null;
-  }
+  if (!modalRoot) return null;
 
   return createPortal(
     <div
-      className="modal-overlay"
-      onClick={handleOverlayClick}
-      role="presentation"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
         ref={modalRef}
-        className="modal-content"
-        onKeyDown={handleTabKey}
+        className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto relative"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <button onClick={onClose} aria-label="Close modal">
-          ✕
-        </button>
-        {children}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <h2 id="modal-title" className="text-xl font-semibold text-gray-800">
+            {title}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            aria-label="Close modal"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="px-6 py-6">{children}</div>
       </div>
     </div>,
     modalRoot
