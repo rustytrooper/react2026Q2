@@ -18,6 +18,15 @@ export const SubmissionCard = ({
         }
       `}
     >
+      {submission.data.avatar && (
+        <div className="mt-3">
+          <img
+            src={submission.data.avatar}
+            alt="Avatar"
+            className="w-12 h-12 mb-2 rounded-full object-cover"
+          />
+        </div>
+      )}
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-lg font-semibold text-gray-800 m-0">
           {submission.data.name}
@@ -59,15 +68,7 @@ export const SubmissionCard = ({
           </span>
         </p>
       </div>
-      {submission.data.avatar && (
-        <div className="mt-3">
-          <img
-            src={submission.data.avatar}
-            alt="Avatar"
-            className="w-12 h-12 rounded-full object-cover"
-          />
-        </div>
-      )}
+
       <div className="mt-3 pt-2 border-t border-gray-100">
         <p className="text-xs text-gray-400 m-0">
           Submitted: {new Date(submission.submittedAt).toLocaleString()}

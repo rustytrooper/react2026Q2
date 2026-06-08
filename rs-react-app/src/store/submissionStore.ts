@@ -1,26 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { StoredFormData } from '../schemas/formSchema';
-
-export interface Submission {
-  id: string;
-  submittedAt: string;
-  formType: 'uncontrolled' | 'rhf';
-  data: {
-    name: string;
-    age: number;
-    email: string;
-    gender: string;
-    termsAccepted: boolean;
-    avatar: string;
-    password: string;
-    country: string;
-  };
-}
+import type { Submission } from '../schemas/formSchema';
 
 interface SubmissionStore {
   submissions: Submission[];
-  data: StoredFormData;
   addSubmission: (submission: Omit<Submission, 'id' | 'submittedAt'>) => void;
   clearSubmissions: () => void;
   getSubmissionsByType: (type: 'uncontrolled' | 'rhf') => Submission[];
@@ -30,7 +13,6 @@ export const useSubmissionStore = create<SubmissionStore>()(
   persist(
     (set, get) => ({
       submissions: [],
-      data: {} as StoredFormData,
       addSubmission: (submissionData) => {
         const newSubmission: Submission = {
           ...submissionData,
