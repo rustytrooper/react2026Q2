@@ -42,9 +42,9 @@
 
 ### Interaction C: Change year
 
-- **Commit duration**: \_\_\_ s
-- **Render duration**: \_\_\_ ms
-- **Screenshot**: ![screenshot](image.png)
+- **Commit duration**: 3 s
+- **Render duration**: 102 ms
+- **Screenshot**: ![screenshot](/react-performance/screenshots/optimized/yearSelectOptimized.jpg)
 
 ### Interaction D: Toggle column
 

@@ -1,9 +1,10 @@
 import type { Country } from '../../types';
 import { CountryCard } from '../country-card/country-card';
 import {  createYearDataMap } from '../../utils/data-transformers';
+import {  List, type RowComponentProps } from 'react-window';
 
 import styles from './country-list.module.css';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 type CountryListProps = {
   countries: Country[];
@@ -65,16 +66,52 @@ export const CountryList = React.memo(({
                                            });
                                        }, [countriesWithCache, searchQuery, selectedRegion, selectedYear, sortField, sortOrder]);
 
-                                       return (
-                                         <div className={styles.countryList}>
-                                           {filteredCountries.map((country) => (
-                                             <CountryCard
-                                               key={country.id}
-                                               country={country}
-                                               selectedYear={selectedYear}
-                                               selectedColumns={selectedColumns}
-                                             />
-                                           ))}
-                                         </div>
-                                       );
+
+  const RowComponent = useCallback(({ index, style }: RowComponentProps) => {
+    const country = filteredCountries[index];
+    if (!country) return null;
+
+    return (
+      <div style={style}>
+        <CountryCard
+          country={country}
+          selectedYear={selectedYear}
+          selectedColumns={selectedColumns}
+        />
+      </div>
+    );
+  }, [filteredCountries, selectedYear, selectedColumns]);
+  
+  const rowPropsData = useMemo(() => ({
+      countries: filteredCountries, 
+      selectedYear: selectedYear,
+      selectedColumns: selectedColumns
+  }), [filteredCountries, selectedYear, selectedColumns]);
+
+  if (filteredCountries.length < 50) {
+    return (
+      <div className={styles.countryList}>
+        {filteredCountries.map((country) => (
+          <CountryCard
+            key={country.id}
+            country={country}
+            selectedYear={selectedYear}
+            selectedColumns={selectedColumns}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <List
+      rowComponent={RowComponent}
+      rowCount={filteredCountries.length}
+      rowHeight={120}          
+      rowProps={rowPropsData}            
+      className={styles.virtualizedList}
+      style={{ height: '70vh', width: '100%' }} 
+    />
+  );
+                                    
                                      })
