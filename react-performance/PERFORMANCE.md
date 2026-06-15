@@ -36,9 +36,9 @@
 
 ### Interaction B: Search countries
 
-- **Commit duration**: \_\_\_ s
-- **Render duration**: \_\_\_ ms
-- **Screenshot**: ![screenshot](image.png)
+- **Commit duration**: 1.5 s
+- **Render duration**: 27.5 ms
+- **Screenshot**: ![screenshot](/react-performance/screenshots/optimized/searchOptimized.jpg)
 
 ### Interaction C: Change year
 
