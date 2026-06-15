@@ -48,16 +48,16 @@
 
 ### Interaction D: Toggle column
 
-- **Commit duration**: \_\_\_ s
-- **Render duration**: \_\_\_ ms
-- **Screenshot**: ![screenshot](image.png)
+- **Commit duration**: 0.4 s
+- **Render duration**: 347.6 ms
+- **Screenshot**: ![screenshot](/react-performance/screenshots/optimized/toggleOptimized.jpg)
 
 ## Summary of Improvements
 
 | Interaction      | Baseline (ms) | Optimized (ms) | Improvement |
 | ---------------- | ------------- | -------------- | ----------- |
-| Sort countries   | \_\_\_        | \_\_\_         | \_\_\_%     |
-| Search countries | \_\_\_        | \_\_\_         | \_\_\_%     |
-| Change year      | \_\_\_        | \_\_\_         | \_\_\_%     |
-| Toggle column    | \_\_\_        | \_\_\_         | \_\_\_%     |
-| **Average**      | **\_\_\_**    | **\_\_\_**     | **\_\_\_%** |
+| Sort countries   | 5300          | 1400           | 73,6%       |
+| Search countries | 3600          | 1500           | 58,3%       |
+| Change year      | 8400          | 3000           | 64,29%      |
+| Toggle column    | 3100          | 400            | 88%         |
+| **Average**      | **5100**      | **1575**       | **69,12%**  |

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { YearData } from '../../types';
 import { formatNumber } from '../../utils/format-utils';
 
@@ -10,28 +11,32 @@ type DataTableProps = {
 };
 
 export const DataTable = ({ data, year, columns }: DataTableProps) => {
-  const yearData = data.filter((d) => d.year === year);
+  const yearData = useMemo(() => data.find((item) => item.year === year), [data, year]);
 
-  if (yearData.length === 0) {
+  const tableRows = useMemo(() => {
+    if (!yearData) return null;
+
+    return columns.map((column) => {
+      const value = yearData[column as keyof YearData];
+
+      const formattedValue = typeof value === 'number' ? formatNumber(value) : (value ?? '-');
+
+      return (
+        <tr key={column}>
+          <td className={styles.columnLabel}>{column.replace(/_/g, ' ').toUpperCase()}</td>
+          <td className={styles.columnValue}>{formattedValue}</td>
+        </tr>
+      );
+    });
+  }, [yearData, columns]);
+
+  if (!yearData) {
     return <div className={styles.noData}>No data available for year {year}</div>;
   }
 
-  const record = yearData[0];
-
   return (
     <table className={styles.table}>
-      <tbody>
-        {columns.map((column, index) => (
-          <tr key={index} className={styles.row}>
-            <td className={styles.labelCell}>{column.replace(/_/g, ' ').toUpperCase()}</td>
-            <td className={styles.valueCell}>
-              {formatNumber(record[column as keyof YearData] as number | undefined, {
-                maximumFractionDigits: 2,
-              })}
-            </td>
-          </tr>
-        ))}
-      </tbody>
+      <tbody>{tableRows}</tbody>
     </table>
   );
 };

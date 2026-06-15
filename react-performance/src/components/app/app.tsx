@@ -34,35 +34,34 @@ export const App = () => {
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebounce(searchInput, 300);
 
-  const years = useMemo(() => data ? getAvailableYears(data) : [], [data]);
+  const years = useMemo(() => (data ? getAvailableYears(data) : []), [data]);
   const availableColumns = useMemo(() => getAvailableColumns(), []);
 
-
   useEffect(() => {
-    setState(prev => ({ ...prev, searchQuery: debouncedSearch }));
+    setState((prev) => ({ ...prev, searchQuery: debouncedSearch }));
   }, [debouncedSearch]);
-  
+
   const handleSearch = useCallback((value: string) => {
-    setSearchInput(value); 
+    setSearchInput(value);
   }, []);
 
   const handleYearChange = useCallback((year: number) => {
-    setState(prev => ({ ...prev, selectedYear: year }));
+    setState((prev) => ({ ...prev, selectedYear: year }));
   }, []);
 
   const handleSortFieldChange = useCallback((field: 'name' | 'population') => {
-    setState(prev => ({ ...prev, sortField: field }));
+    setState((prev) => ({ ...prev, sortField: field }));
   }, []);
 
   const handleSortOrderToggle = useCallback(() => {
-    setState(prev => ({ 
-      ...prev, 
-      sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' 
+    setState((prev) => ({
+      ...prev,
+      sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc',
     }));
   }, []);
 
   const handleColumnToggle = useCallback((column: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       selectedColumns: prev.selectedColumns.includes(column)
         ? prev.selectedColumns.filter((c) => c !== column)
@@ -71,29 +70,31 @@ export const App = () => {
   }, []);
 
   const handleModalToggle = useCallback(() => {
-    setState(prev => ({ ...prev, isColumnModalOpen: !prev.isColumnModalOpen }));
+    setState((prev) => ({ ...prev, isColumnModalOpen: !prev.isColumnModalOpen }));
   }, []);
 
-
-  const countryListProps = useMemo(() => ({
-    countries: data!,
-    searchQuery: searchInput,
-    selectedColumns: state.selectedColumns,
-    selectedRegion: state.selectedRegion,
-    selectedYear: state.selectedYear,
-    sortField: state.sortField,
-    sortOrder: state.sortOrder,
-    onYearChange: handleYearChange,
-  }), [
-    data,
-    searchInput,
-    state.selectedColumns,
-    state.selectedRegion,
-    state.selectedYear,
-    state.sortField,
-    state.sortOrder,
-    handleYearChange
-  ]);
+  const countryListProps = useMemo(
+    () => ({
+      countries: data!,
+      searchQuery: searchInput,
+      selectedColumns: state.selectedColumns,
+      selectedRegion: state.selectedRegion,
+      selectedYear: state.selectedYear,
+      sortField: state.sortField,
+      sortOrder: state.sortOrder,
+      onYearChange: handleYearChange,
+    }),
+    [
+      data,
+      searchInput,
+      state.selectedColumns,
+      state.selectedRegion,
+      state.selectedYear,
+      state.sortField,
+      state.sortOrder,
+      handleYearChange,
+    ]
+  );
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -141,7 +142,7 @@ export const App = () => {
 
       {/* Country List */}
 
-       <CountryList {...countryListProps} />
+      <CountryList {...countryListProps} />
 
       {/* Column Modal */}
       <ColumnModal
