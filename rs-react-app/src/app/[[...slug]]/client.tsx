@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic'
 
-const App = dynamic(() => import('../../App'), { ssr: false })
+const AppWrapper = dynamic(() => import('../../AppWrapper'), { ssr: false })
 
 export function ClientOnly() {
-  return <App />
+  return <AppWrapper />
 }
