@@ -6,11 +6,6 @@ expertMode = true
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5174
-externalPort = 3001
-exposeLocalhost = true
-
 [workflows]
 runButton = "Project"
 
@@ -27,10 +22,10 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd rs-react-app && npm run dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd rs-react-app && npm run dev -- -p 5000"
+waitForPort = 5000
