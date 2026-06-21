@@ -1,5 +1,5 @@
-import sun from '../assets/sun.png';
-import moon from '../assets/moon.png';
+import sun from '../public/sun.png';
+import moon from '../public/moon.png';
 import { useTheme } from '../context/ThemeContext';
 
 const ThemeToggleButton = () => {
@@ -20,9 +20,9 @@ const ThemeToggleButton = () => {
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (
-        <img src={sun} alt="light" />
+        <img src={sun.src} alt="light" />
       ) : (
-        <img src={moon} alt="dark" />
+        <img src={moon.src} alt="dark" />
       )}
     </button>
   );
