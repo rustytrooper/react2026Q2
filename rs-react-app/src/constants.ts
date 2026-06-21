@@ -1,1 +1,1 @@
-export const cashTTL = Number(import.meta.env.VITE_CACHE_TTL) * 5 * 60 * 1000;
+export const cashTTL = Number(process.env.NEXT_PUBLIC_CACHE_TTL || 1) * 5 * 60 * 1000;
