@@ -1,3 +1,5 @@
+'use client' 
+
 import type { ReactNode } from 'react';
 
 interface PaginationProps {
@@ -43,7 +45,7 @@ export function Pagination({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-4 py-2 border cursor-pointer rounded disabled:opacity-50"
+        className="px-4 py-2 border cursor-pointer rounded disabled:opacity-50 dark:border-white dark:text-white transition-all duration-300"
       >
         Previous
       </button>
@@ -55,8 +57,8 @@ export function Pagination({
           disabled={page === '...'}
           className={`px-4 py-2 border cursor-pointer rounded ${
             currentPage === page
-              ? 'bg-purple-400 text-white'
-              : 'hover:bg-gray-200'
+              ? 'bg-purple-600 text-white dark:text-white dark:border-white transition-all duration-300'
+              : 'hover:bg-purple-500  dark:border-white dark:text-white transition-all duration-300'
           }`}
         >
           {page}
@@ -66,7 +68,7 @@ export function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="px-4 py-2 border cursor-pointer rounded disabled:opacity-50"
+        className="px-4 py-2 border cursor-pointer rounded disabled:opacity-50 dark:border-white dark:text-white transition-all duration-300"
       >
         Next
       </button>

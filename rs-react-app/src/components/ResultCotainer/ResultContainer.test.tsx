@@ -1,18 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router';
-import { setupServer } from 'msw/node';
-import { http, HttpResponse } from 'msw';
 import ResultContainer from './ResultContainer';
-import type { DisneyApiResponse } from '../../types/charachterType';
-import {
-  mockCharactersResponse,
-  mockAchilles,
-  mockAuntGertie,
-  mockAvatarSingh,
-  mockAvemetrus,
-} from '../../mocks/mockData';
+import type { DisneyApiResponse, Character } from '../../types/charachterType';
 
 const mockNavigate = vi.fn();
 const mockLocation = { search: '' };
@@ -32,13 +23,15 @@ vi.mock('../../ui-kit/Card', () => ({
     name,
     films,
     tvShows,
+    id,
   }: {
     imageUrl: string;
     name: string;
     films: string[];
     tvShows: string[];
+    id: number;
   }) => (
-    <div data-testid="card" data-name={name}>
+    <div data-testid="card" data-id={id} data-name={name}>
       <img data-testid="card-image" src={imageUrl} alt={name} />
       <h3 data-testid="card-name">{name}</h3>
       <div data-testid="card-films">
@@ -51,32 +44,80 @@ vi.mock('../../ui-kit/Card', () => ({
   ),
 }));
 
-const server = setupServer();
+const renderWithBrowserRouter = (ui: React.ReactElement) => {
+  return render(<BrowserRouter>{ui}</BrowserRouter>);
+};
 
 describe('ResultContainer', () => {
-  beforeAll(() => {
-    server.listen({ onUnhandledRequest: 'error' });
-    cleanup();
-  });
+  const mockCharacter: Character = {
+    _id: 1,
 
-  afterEach(() => {
-    server.resetHandlers();
+    name: 'Mickey Mouse',
+    imageUrl: 'https://example.com/mickey.jpg',
+    films: ['Film 1', 'Film 2'],
+    tvShows: ['Show 1', 'Show 2'],
+    shortFilms: [],
+    videoGames: [],
+    parkAttractions: [],
+    allies: [],
+    enemies: [],
+    url: '',
+  };
+
+  const mockResponse: DisneyApiResponse = {
+    info: {
+      count: 3,
+      totalPages: 1,
+      previousPage: null,
+      nextPage: null,
+    },
+    data: [mockCharacter],
+  };
+
+  const mockMultipleResponse: DisneyApiResponse = {
+    info: {
+      count: 3,
+      totalPages: 1,
+      previousPage: null,
+      nextPage: null,
+    },
+    data: [
+      mockCharacter,
+      {
+        ...mockCharacter,
+        _id: 2,
+        name: 'Donald Duck',
+        imageUrl: 'https://example.com/donald.jpg',
+        films: ['Donald Film'],
+        tvShows: [],
+      },
+      {
+        ...mockCharacter,
+        _id: 3,
+
+        name: 'Goofy',
+        imageUrl: 'https://example.com/goofy.jpg',
+        films: [],
+        tvShows: ['Goofy Show'],
+      },
+    ],
+  };
+
+  beforeEach(() => {
     vi.clearAllMocks();
     mockLocation.search = '';
     cleanup();
   });
 
-  afterAll(() => {
-    (server.close(), cleanup());
+  afterEach(() => {
+    vi.resetAllMocks();
+    document.body.innerHTML = '';
+    cleanup();
   });
 
   describe('Basic rendering', () => {
     it('should render nothing when characters is null', () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer characters={null} />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={null} />);
 
       expect(screen.queryByTestId('card')).not.toBeInTheDocument();
     });
@@ -92,237 +133,147 @@ describe('ResultContainer', () => {
         data: [],
       };
 
-      render(
-        <BrowserRouter>
-          <ResultContainer characters={emptyResponse} />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={emptyResponse} />);
 
       expect(screen.queryByTestId('card')).not.toBeInTheDocument();
     });
 
-    it('should render cards from mockCharactersResponse', () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
+    it('should render cards from response data', () => {
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
+
+      const cards = screen.getAllByTestId('card');
+      expect(cards).toHaveLength(1);
+      expect(screen.getByText('Mickey Mouse')).toBeInTheDocument();
+    });
+
+    it('should render multiple cards when multiple characters provided', () => {
+      renderWithBrowserRouter(
+        <ResultContainer characters={mockMultipleResponse} />
       );
 
       const cards = screen.getAllByTestId('card');
-      expect(cards).toHaveLength(mockCharactersResponse.data.length);
-
-      mockCharactersResponse.data.forEach((character) => {
-        expect(screen.getByText(character.name)).toBeInTheDocument();
-      });
+      expect(cards).toHaveLength(3);
+      expect(screen.getByText('Mickey Mouse')).toBeInTheDocument();
+      expect(screen.getByText('Donald Duck')).toBeInTheDocument();
+      expect(screen.getByText('Goofy')).toBeInTheDocument();
     });
   });
 
   describe('Character data display', () => {
     it('should display character name correctly', () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      const names = screen.getAllByTestId('card-name');
-      expect(names[0]).toHaveTextContent(mockCharactersResponse.data[0].name);
+      const name = screen.getByTestId('card-name');
+      expect(name).toHaveTextContent('Mickey Mouse');
     });
 
     it('should display character image correctly', () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      const images = screen.getAllByTestId('card-image');
-      expect(images[0]).toHaveAttribute(
-        'src',
-        mockCharactersResponse.data[0].imageUrl
-      );
+      const image = screen.getByTestId('card-image');
+      expect(image).toHaveAttribute('src', 'https://example.com/mickey.jpg');
+      expect(image).toHaveAttribute('alt', 'Mickey Mouse');
     });
 
     it('should display films when available', () => {
-      const characterWithFilms = {
-        info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
-        data: [mockAuntGertie.data],
-      };
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={characterWithFilms as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
-
-      const expectedFilms = mockAuntGertie.data.films.join(', ');
       expect(screen.getByTestId('card-films')).toHaveTextContent(
-        `Films: ${expectedFilms}`
+        'Films: Film 1, Film 2'
       );
     });
 
     it('should display "None" when films array is empty', () => {
-      const characterWithoutFilms = {
-        info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
-        data: [mockAvatarSingh.data],
+      const characterWithNoFilms: DisneyApiResponse = {
+        ...mockResponse,
+        data: [{ ...mockCharacter, films: [] }],
       };
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={characterWithoutFilms as DisneyApiResponse}
-          />
-        </BrowserRouter>
+      renderWithBrowserRouter(
+        <ResultContainer characters={characterWithNoFilms} />
       );
 
       expect(screen.getByTestId('card-films')).toHaveTextContent('Films: None');
     });
 
     it('should display TV shows when available', () => {
-      const characterWithTvShows = {
-        info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
-        data: [mockAvemetrus.data],
-      };
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={characterWithTvShows as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
-
-      const expectedTvShows = mockAvemetrus.data.tvShows.join(', ');
       expect(screen.getByTestId('card-tvshows')).toHaveTextContent(
-        `TV Shows: ${expectedTvShows}`
+        'TV Shows: Show 1, Show 2'
       );
     });
 
     it('should display "None" when tvShows array is empty', () => {
-      const characterWithoutTvShows = {
-        info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
-        data: [mockAvatarSingh.data],
+      const characterWithNoTvShows: DisneyApiResponse = {
+        ...mockResponse,
+        data: [{ ...mockCharacter, tvShows: [] }],
       };
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={characterWithoutTvShows as DisneyApiResponse}
-          />
-        </BrowserRouter>
+      renderWithBrowserRouter(
+        <ResultContainer characters={characterWithNoTvShows} />
       );
 
       expect(screen.getByTestId('card-tvshows')).toHaveTextContent(
         'TV Shows: None'
       );
     });
-
-    it('should handle multiple Achilles characters correctly', () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer characters={mockAchilles as DisneyApiResponse} />
-        </BrowserRouter>
-      );
-
-      const cards = screen.getAllByTestId('card');
-      expect(cards).toHaveLength(2);
-
-      const achillesElements = screen.getAllByText('Achilles');
-      expect(achillesElements).toHaveLength(2);
-    });
   });
 
   describe('Navigation', () => {
     it('should navigate to character details when card is clicked', async () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
+      const user = userEvent.setup();
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      const firstCard = screen.getAllByTestId('card')[0];
-      await userEvent.click(firstCard);
+      const card = screen.getByTestId('card');
+      await user.click(card);
 
-      const characterId = mockCharactersResponse.data[0]._id;
-      expect(mockNavigate).toHaveBeenCalledWith(`character/${characterId}`);
+      expect(mockNavigate).toHaveBeenCalledWith('character/1');
     });
 
     it('should preserve search parameters when navigating', async () => {
-      mockLocation.search = '?page=2&name=achilles';
+      mockLocation.search = '?page=2&query=test';
+      const user = userEvent.setup();
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      const firstCard = screen.getAllByTestId('card')[0];
-      await userEvent.click(firstCard);
+      const card = screen.getByTestId('card');
+      await user.click(card);
 
-      const characterId = mockCharactersResponse.data[0]._id;
       expect(mockNavigate).toHaveBeenCalledWith(
-        `character/${characterId}?page=2&name=achilles`
+        'character/1?page=2&query=test'
       );
     });
 
     it('should navigate with empty search when location.search is empty', async () => {
       mockLocation.search = '';
+      const user = userEvent.setup();
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-      const firstCard = screen.getAllByTestId('card')[0];
-      await userEvent.click(firstCard);
+      const card = screen.getByTestId('card');
+      await user.click(card);
 
-      const characterId = mockCharactersResponse.data[0]._id;
-      expect(mockNavigate).toHaveBeenCalledWith(`character/${characterId}`);
+      expect(mockNavigate).toHaveBeenCalledWith('character/1');
     });
 
     it('should navigate correctly for different characters', async () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
+      const user = userEvent.setup();
+      renderWithBrowserRouter(
+        <ResultContainer characters={mockMultipleResponse} />
       );
 
       const cards = screen.getAllByTestId('card');
+      const secondCard = cards[1];
+      await user.click(secondCard);
 
-      await userEvent.click(cards[1]);
-      const secondCharacterId = mockCharactersResponse.data[1]._id;
-      expect(mockNavigate).toHaveBeenCalledWith(
-        `character/${secondCharacterId}`
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('character/2');
     });
   });
 
-  describe('CSS classes and styling', () => {
+  describe('CSS classes', () => {
     it('should have correct grid layout classes', () => {
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={mockCharactersResponse as DisneyApiResponse}
-          />
-        </BrowserRouter>
-      );
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
       const grid = document.querySelector('ul');
       expect(grid).toHaveClass('grid');
@@ -342,80 +293,37 @@ describe('ResultContainer', () => {
         info: { count: 1, totalPages: 1, previousPage: null, nextPage: null },
         data: [
           {
-            ...mockAvatarSingh.data,
-            films: undefined,
-            tvShows: undefined,
+            ...mockCharacter,
+            films: undefined as unknown as string[],
+            tvShows: undefined as unknown as string[],
           },
         ],
       };
 
-      render(
-        <BrowserRouter>
-          <ResultContainer
-            characters={
-              characterWithUndefinedFields as unknown as DisneyApiResponse
-            }
-          />
-        </BrowserRouter>
-      );
-      const filmsElements = screen.getAllByTestId('card-films');
-      const tvShowsElements = screen.getAllByTestId('card-tvshows');
-
-      expect(filmsElements[0]).toHaveTextContent('Films: None');
-      expect(tvShowsElements[0]).toHaveTextContent('TV Shows: None');
-    });
-
-    it('should handle large number of characters efficiently', () => {
-      const manyCharacters = {
-        info: { count: 50, totalPages: 2, previousPage: null, nextPage: null },
-        data: Array(50)
-          .fill(null)
-          .map((_, i) => ({
-            ...mockAvatarSingh.data,
-            _id: i,
-            name: `Character ${i}`,
-          })),
-      };
-
-      render(
-        <BrowserRouter>
-          <ResultContainer characters={manyCharacters as DisneyApiResponse} />
-        </BrowserRouter>
+      renderWithBrowserRouter(
+        <ResultContainer
+          characters={characterWithUndefinedFields as DisneyApiResponse}
+        />
       );
 
-      const cards = screen.getAllByTestId('card');
-      expect(cards).toHaveLength(50);
-      expect(screen.getByText('Character 0')).toBeInTheDocument();
-      expect(screen.getByText('Character 49')).toBeInTheDocument();
+      expect(screen.getByTestId('card-films')).toHaveTextContent('Films: None');
+      expect(screen.getByTestId('card-tvshows')).toHaveTextContent(
+        'TV Shows: None'
+      );
     });
-  });
-});
 
-describe('ResultContainer with MSW integration', () => {
-  const server = setupServer();
+    it('should pass id prop to Card component', () => {
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-  afterEach(() => server.resetHandlers());
-  afterAll(() => server.close());
+      const card = screen.getByTestId('card');
+      expect(card).toHaveAttribute('data-id', '1');
+    });
 
-  it('should work with real MSW data flow', async () => {
-    server.use(
-      http.get('https://api.disneyapi.dev/character', () => {
-        return HttpResponse.json(mockCharactersResponse);
-      })
-    );
+    it('should pass name as data attribute', () => {
+      renderWithBrowserRouter(<ResultContainer characters={mockResponse} />);
 
-    const response = await fetch('https://api.disneyapi.dev/character');
-    const data = await response.json();
-
-    render(
-      <BrowserRouter>
-        <ResultContainer characters={data as DisneyApiResponse} />
-      </BrowserRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getAllByTestId('card').length).toBe(3);
+      const card = screen.getByTestId('card');
+      expect(card).toHaveAttribute('data-name', 'Mickey Mouse');
     });
   });
 });

@@ -1,3 +1,5 @@
+'use client' 
+
 import {
   useState,
   type ChangeEvent,
@@ -52,11 +54,13 @@ function SearchForm({ onSubmit, initialValue }: SearchFormProps): ReactNode {
           focus:border-transparent
           transition-all 
           duration-200
+        dark:shadow-md
+        dark:shadow-purple-400
         "
         data-testid="formInput"
       />
       <button
-        className="bg-purple-400  rounded-2xl  px-4 py-3 text-white hover:bg-purple-300 cursor-pointer hover:scale-110 transition-all duration-200"
+        className="bg-purple-400  rounded-2xl  px-4 py-3 text-white hover:bg-purple-300 cursor-pointer hover:scale-110 dark:bg-purple-950 dark:hover:bg-purple-800 transition-all duration-300"
         data-testid="formButton"
       >
         Search

@@ -24,3 +24,7 @@ dist-ssr
 *.sln
 *.sw?
 .d.ts
+
+.next
+next-env.d.ts
+dist

@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react';
 import useDisneyStore from '../../store/useDownloadData';
 import { downloadAsCsv } from '../../helpers/converToCsv';
@@ -29,7 +31,7 @@ const SelectionFlyout = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-      <div className="bg-purple-500 rounded-lg shadow-xl p-4 min-w-[240px]">
+      <div className="bg-purple-500 rounded-lg shadow-xl p-4 min-w-[240px] dark:bg-purple-950 transition-all duration-300">
         <div className="text-white mb-3 text-center">
           <span className="font-semibold">Amount of chosen characters:</span>
           <span className="ml-2 text-lg font-bold">{selectedCount}</span>
