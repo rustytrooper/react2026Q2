@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react';
 import useDisneyStore from '../../store/useDownloadData';
 import { downloadAsCsv } from '../../helpers/converToCsv';

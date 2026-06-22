@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import '../index.css';
+import { Providers } from './providers';
+import { Header } from '../components/Header/Header';
 
 export const metadata: Metadata = {
   title: 'My App',
@@ -17,7 +19,10 @@ export default function RootLayout({
         
       </head>
       <body>
+         <Providers>
+         <Header/>
         <div id="root">{children}</div>
+      </Providers>
       </body>
     </html>
   )
