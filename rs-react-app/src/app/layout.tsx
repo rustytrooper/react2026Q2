@@ -4,8 +4,8 @@ import { Providers } from './providers';
 import { Header } from '../components/Header/Header';
 
 export const metadata: Metadata = {
-  title: 'My App',
-  description: 'My App is a...',
+  title: 'Find Disney characters',
+  description: 'Project for rss course',
 }
 
 export default function RootLayout({

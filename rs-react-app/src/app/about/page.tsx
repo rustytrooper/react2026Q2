@@ -1,4 +1,3 @@
-// app/about/page.tsx
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,7 +22,7 @@ export default function About(): ReactNode {
           className="hover:opacity-80 transition-opacity"
         >
           <Image
-            src="/i.png"  // ← путь к изображению в public/
+            src="/i.png"  
             alt="RS School Courses"
             width={200}
             height={100}

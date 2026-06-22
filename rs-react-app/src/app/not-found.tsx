@@ -1,4 +1,3 @@
-// app/not-found.tsx
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,7 +11,7 @@ import Link from 'next/link';
 
       <div className="relative w-64 h-64 md:w-96 md:h-96 mb-8">
         <Image
-          src="/mermaid1.png"
+          src="/mermaid1.png"  
           alt="Error illustration"
           fill
           className="object-contain"

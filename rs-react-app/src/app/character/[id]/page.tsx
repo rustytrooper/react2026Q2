@@ -1,60 +1,4 @@
-// // app/character/[id]/page.tsx
-// 'use client'  
-
-// import { useParams, useSearchParams } from 'next/navigation'
-// import { useQuery } from '@tanstack/react-query'
-// import { charactersApi } from '../../../helpers/charactersApi'
-// import { Loader } from '../../../components/Loader/Loader'
-// import { ErrorBoundary } from '../../../components/ErrorBoundary/ErrorBoundary'
-// import Link from 'next/link'
-
-// export default function CharacterPage() {
-//   const params = useParams()
-//   const searchParams = useSearchParams()
-//   const id = params?.id as string
-
-//   // Возвращаемся на страницу с сохранением query параметров
-//   const backUrl = `/?${searchParams?.toString() || ''}`
-
-//   const { data: character, isLoading } = useQuery({
-//     queryKey: ['character', id],
-//     queryFn: () => charactersApi.getCharacterById(id),
-//   })
-
-//   if (isLoading) {
-//     return <Loader />
-//   }
-
-//   if (!character) {
-//     return <div>Character not found</div>
-//   }
-
-//   return (
-//     <ErrorBoundary>
-//       <div className="container mx-auto p-4">
-//         <Link 
-//           href={backUrl}
-//           className="inline-block mb-4 text-purple-600 hover:text-purple-800"
-//         >
-//           ← Back to search
-//         </Link>
-
-//         <div className="bg-white rounded-lg shadow-lg p-6">
-//           <img 
-//             src={character.imageUrl} 
-//             alt={character.name}
-//             className="w-64 h-64 object-cover rounded-lg mx-auto"
-//           />
-//           <h1 className="text-3xl font-bold mt-4">{character.name}</h1>
-//           {/* ... остальные поля */}
-//         </div>
-//       </div>
-//     </ErrorBoundary>
-//   )
-// }
-
-// app/characters/[id]/page.tsx
-'use client'  // ← пока клиентский (использует useQuery)
+'use client'  
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -63,20 +7,17 @@ import { Loader } from '../../../components/Loader/Loader';
 import { ErrorBoundary } from '../../../components/ErrorBoundary/ErrorBoundary';
 import Link from 'next/link';
 import Image from 'next/image';
+import './charDet.css';
 
 export default function CharacterPage() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Получаем id из URL
   const id = params?.id as string;
 
-  // Сохраняем query параметры для возврата
   const queryString = searchParams?.toString() || '';
   const backUrl = `/${queryString ? `?${queryString}` : ''}`;
 
-  // Запрашиваем данные персонажа
   const { 
     data: character, 
     isLoading, 
@@ -84,15 +25,13 @@ export default function CharacterPage() {
   } = useQuery({
     queryKey: ['character', id],
     queryFn: () => charactersApi.getCharacterById(id),
-    enabled: !!id,  // ← запрос только если есть id
+    enabled: !!id,  
   });
 
-  // Обработка загрузки
   if (isLoading) {
     return <Loader />;
   }
 
-  // Обработка ошибки
   if (error) {
     return (
       <div className="container mx-auto p-4 text-center">
@@ -108,7 +47,6 @@ export default function CharacterPage() {
     );
   }
 
-  // Обработка "не найдено"
   if (!character) {
     return (
       <div className="container mx-auto p-4 text-center">
@@ -125,23 +63,19 @@ export default function CharacterPage() {
 
   return (
     <ErrorBoundary>
-      <div className="container mx-auto p-4">
-        {/* Кнопка возврата */}
-        <Link 
-          href={backUrl}
-          className="inline-flex items-center mb-6 text-purple-600 hover:text-purple-800 transition-colors"
-        >
-          {/* <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg> */}
-          Back to search
-        </Link>
-
-        {/* Карточка персонажа */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden max-w-4xl mx-auto">
-          <div className="md:flex">
-            {/* Изображение */}
-            <div className="md:w-1/3 flex justify-center items-center p-6 bg-purple-50 dark:bg-purple-900">
+      <div className="character-detail-overlay">
+  
+        <div className="character-detail-content">
+         
+          <div className="flex ">
+           
+            <Link 
+              href={backUrl}
+              className="inline-flex items-center mb-6 text-white hover:text-purple-800 transition-colors"
+            >
+              X
+            </Link>
+            <div  className="rounded-xl object-cover w-50 h-50 mx-auto my-4">
               {character.imageUrl ? (
                 <Image
                   src={character.imageUrl}
@@ -157,20 +91,17 @@ export default function CharacterPage() {
                 </div>
               )}
             </div>
-
-            {/* Информация */}
-            <div className="md:w-2/3 p-6">
-              <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+            <div className="">
+              <p className=" font-bold text-gray-800 dark:text-white mb-4">
                 {character.name}
-              </h1>
+              </p>
 
-              {/* Films */}
               <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                <p className="text-lg font-semibold text-gray-700 dark:text-white">
                   🎬 Films
-                </h2>
+                </p>
                 {character.films && character.films.length > 0 ? (
-                  <ul className="mt-2 list-disc list-inside text-gray-600 dark:text-gray-400">
+                  <ul className="mt-2 list-disc list-inside text-gray-600 dark:text-white">
                     {character.films.map((film: string, index: number) => (
                       <li key={index}>{film}</li>
                     ))}
@@ -180,13 +111,13 @@ export default function CharacterPage() {
                 )}
               </div>
 
-              {/* TV Shows */}
+            
               <div>
-                <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                <p className="text-lg font-semibold text-gray-700 dark:text-white">
                   📺 TV Shows
-                </h2>
+                </p>
                 {character.tvShows && character.tvShows.length > 0 ? (
-                  <ul className="mt-2 list-disc list-inside text-gray-600 dark:text-gray-400">
+                  <ul className="mt-2 list-disc list-inside text-gray-600 dark:text-white">
                     {character.tvShows.map((show: string, index: number) => (
                       <li key={index}>{show}</li>
                     ))}
@@ -195,29 +126,7 @@ export default function CharacterPage() {
                   <p className="text-gray-400 italic">No TV shows available</p>
                 )}
               </div>
-
-              {/* Дополнительная информация */}
-              {character.allies && character.allies.length > 0 && (
-                <div className="mt-4">
-                  <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    🤝 Allies
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {character.allies.join(', ')}
-                  </p>
-                </div>
-              )}
-
-              {character.enemies && character.enemies.length > 0 && (
-                <div className="mt-2">
-                  <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    ⚔️ Enemies
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {character.enemies.join(', ')}
-                  </p>
-                </div>
-              )}
+            
             </div>
           </div>
         </div>

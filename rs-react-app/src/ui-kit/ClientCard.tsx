@@ -1,11 +1,8 @@
-// ui-kit/Card/CardWithSelection.tsx (клиентский, с логикой)
 'use client'
 
 import useDisneyStore from "../store/useDownloadData";
 import Card from "./Card";
 
-// import { Card } from './Card'
-// import useDisneyStore from '../../store/useDownloadData'
 
 interface ClientCardProps {
   imageUrl: string;
@@ -15,7 +12,6 @@ interface ClientCardProps {
   id: number;
 }
 
-// ✅ Клиентский компонент (добавляет логику выбора)
  function ClientCard({
   imageUrl,
   name,
@@ -32,12 +28,22 @@ interface ClientCardProps {
   };
 
   return (
-    <div className="relative">
+    <div >
       <input
         type="checkbox"
         checked={isSelected}
         onClick={handleCheckboxClick}
-        className="absolute top-2 right-2 w-5 h-5 cursor-pointer"
+        className="
+        
+          accent-white
+          checked:accent-purple-400
+          w-5 
+          h-5
+          mt-5
+          cursor-pointer
+          ml-60
+          dark:bg-white
+        "
       />
       <Card
         imageUrl={imageUrl}

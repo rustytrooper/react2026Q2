@@ -1,4 +1,3 @@
-// app/App.tsx (создайте этот файл рядом с page.tsx)
 'use client'
 
 import '../App.css';
